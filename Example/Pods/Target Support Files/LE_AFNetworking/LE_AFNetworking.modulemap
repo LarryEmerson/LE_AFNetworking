@@ -1,0 +1,6 @@
+framework module LE_AFNetworking {
+  umbrella header "LE_AFNetworking-umbrella.h"
+
+  export *
+  module * { export * }
+}

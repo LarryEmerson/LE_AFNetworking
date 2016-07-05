@@ -1,0 +1,16 @@
+PODS:
+  - LE_AFNetworking (0.1.0)
+
+DEPENDENCIES:
+  - LE_AFNetworking (from `../`)
+
+EXTERNAL SOURCES:
+  LE_AFNetworking:
+    :path: ../
+
+SPEC CHECKSUMS:
+  LE_AFNetworking: 086fb0915994e9c81b90d98bf18e89b8a20d4abf
+
+PODFILE CHECKSUM: 9a4fdb8f2c341cc52b4ed575cef596a5d2803e5a
+
+COCOAPODS: 1.0.1
