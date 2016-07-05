@@ -1,9 +1,8 @@
 {
   "name": "LE_AFNetworking",
   "version": "0.1.0",
-  "summary": "A short description of LE_AFNetworking.",
-  "description": "TODO: Add long description of the pod here.",
-  "homepage": "https://github.com/<GITHUB_USERNAME>/LE_AFNetworking",
+  "summary": "在AFNetworingd的基础上做的进一步封装",
+  "homepage": "https://github.com/LarryEmerson/LE_AFNetworking",
   "license": {
     "type": "MIT",
     "file": "LICENSE"
@@ -12,11 +11,42 @@
     "LarryEmerson": "larryemerson@163.com"
   },
   "source": {
-    "git": "https://github.com/<GITHUB_USERNAME>/LE_AFNetworking.git",
+    "git": "https://github.com/LarryEmerson/LE_AFNetworking.git",
     "tag": "0.1.0"
   },
   "platforms": {
-    "ios": "8.0"
+    "ios": "7.0"
   },
-  "source_files": "LE_AFNetworking/Classes/**/*"
+  "source_files": "LE_AFNetworking/Classes/**/*",
+  "frameworks": [
+    "UIKit",
+    "MapKit",
+    "AssetsLibrary",
+    "JavaScriptCore",
+    "CoreTelephony",
+    "CFNetwork"
+  ],
+  "libraries": [
+    "sqlite3",
+    "c",
+    "icucore",
+    "z",
+    "stdc++.6.0.9",
+    "xml2"
+  ],
+  "requires_arc": true,
+  "xcconfig": {
+    "HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"
+  },
+  "dependencies": {
+    "AFNetworking": [
+      "~> 3.0"
+    ],
+    "Qiniu": [
+
+    ],
+    "LEFrameworks": [
+
+    ]
+  }
 }

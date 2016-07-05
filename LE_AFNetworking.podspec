@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 s.name             = 'LE_AFNetworking'
-s.version          = '0.1.0'
+s.version          = '0.1.1'
 s.summary          = '在AFNetworingd的基础上做的进一步封装'
 
 s.homepage         = 'https://github.com/LarryEmerson/LE_AFNetworking'
@@ -19,9 +19,10 @@ s.source_files = 'LE_AFNetworking/Classes/**/*'
 
 # s.public_header_files = 'Pod/Classes/**/*.h'
 s.frameworks = 'UIKit', 'MapKit', 'AssetsLibrary', 'JavaScriptCore', 'CoreTelephony', 'CFNetwork'
-s.library = 'sqlite3', 'c', 'icucore', 'z', 'stdc++.6.0.9'
+s.libraries = 'sqlite3', 'c', 'icucore', 'z', 'stdc++.6.0.9', 'xml2'
 s.requires_arc = true
 s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
 s.dependency 'AFNetworking', '~> 3.0'
 s.dependency "Qiniu"
+s.dependency "LEFrameworks"
 end

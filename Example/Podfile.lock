@@ -1,5 +1,28 @@
 PODS:
-  - LE_AFNetworking (0.1.0)
+  - AFNetworking (3.1.0):
+    - AFNetworking/NSURLSession (= 3.1.0)
+    - AFNetworking/Reachability (= 3.1.0)
+    - AFNetworking/Security (= 3.1.0)
+    - AFNetworking/Serialization (= 3.1.0)
+    - AFNetworking/UIKit (= 3.1.0)
+  - AFNetworking/NSURLSession (3.1.0):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/Reachability (3.1.0)
+  - AFNetworking/Security (3.1.0)
+  - AFNetworking/Serialization (3.1.0)
+  - AFNetworking/UIKit (3.1.0):
+    - AFNetworking/NSURLSession
+  - HappyDNS (0.3.5)
+  - LE_AFNetworking (0.1.0):
+    - AFNetworking (~> 3.0)
+    - LEFrameworks
+    - Qiniu
+  - LEFrameworks (0.2.9)
+  - Qiniu (7.1.0.1):
+    - AFNetworking (~> 3)
+    - HappyDNS (~> 0.3)
 
 DEPENDENCIES:
   - LE_AFNetworking (from `../`)
@@ -9,8 +32,12 @@ EXTERNAL SOURCES:
     :path: ../
 
 SPEC CHECKSUMS:
-  LE_AFNetworking: 086fb0915994e9c81b90d98bf18e89b8a20d4abf
+  AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
+  HappyDNS: 6f8cf46fa7c0b98a6591fe8ecb2e08d9907a6e8b
+  LE_AFNetworking: 452ac3ca79a60cdd75d5227b443c431f570dcdc0
+  LEFrameworks: d5f18fbb7cc613af707fbb632170efd85f29190b
+  Qiniu: 0e92ff0d1b9afbc55275306671284e4ebeb08d03
 
-PODFILE CHECKSUM: 9a4fdb8f2c341cc52b4ed575cef596a5d2803e5a
+PODFILE CHECKSUM: ab42e96dc284e8fcbe1c0cd314cc3509536e4906
 
 COCOAPODS: 1.0.1
