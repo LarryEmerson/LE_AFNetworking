@@ -6,34 +6,34 @@
 ####Demo工程演示了LE_AFNetworking的使用及NSDictionary字典内容直接转自定义数据模型对象。
 #####主要代码
 ###### 请求 
-[[LE_AFNetworking sharedInstance] requestWithApi:@"http://git.oschina.net/larryemerson/ybs/raw/master/README.md" uri:@"" httpHead:nil requestType:RequestTypeGet parameter:nil delegate:self];
+    [[LE_AFNetworking sharedInstance] requestWithApi:@"http://git.oschina.net/larryemerson/ybs/raw/master/README.md" uri:@"" httpHead:nil requestType:RequestTypeGet parameter:nil delegate:self];
 ###### 回调内容 
--(void) request:(LE_AFNetworkingRequestObject *)request ResponedWith:(NSDictionary *)response{
-    NSLogObject(response);
-    [self onTestDataModelWithData:[response objectForKey:@"data"]];
-}
+    -(void) request:(LE_AFNetworkingRequestObject *)request ResponedWith:(NSDictionary *)response{
+        NSLogObject(response);
+        [self onTestDataModelWithData:[response objectForKey:@"data"]];
+    }
 ###### 回调转对象并打印对象内容
--(void) onTestDataModelWithData:(NSDictionary *) data{
-    DM_Test *dmTest=[[DM_Test alloc] initWithDataSource:data];
-    if(dmTest){
-        for (NSInteger i=0; i<dmTest.images.count; i++) {
-            DM_Test_Images *image=[dmTest.images objectAtIndex:i];
-            NSLog(@"dmTest.image.timestamp=%@",image.timestamp);
-            NSLog(@"dmTest.image.imagename=%@",image.imagename);
-        }
-        for (NSInteger i=0; i<dmTest.messages.count; i++) {
-            DM_Test_Messages *msg=[dmTest.messages objectAtIndex:i];
-            NSLog(@"dmTest.message.message=%@",msg.message);
-            for (NSInteger j=0; j<msg.details.count; ++j) {
-                DM_Test_Messages_Details *details=[msg.details objectAtIndex:i];
-                NSLog(@"dmTest.message.details.content=%@",details.content);
-                NSLog(@"dmTest.message.details.extra.a=%@",details.extra.a);
-                NSLog(@"dmTest.message.details.extra.c=%@",details.extra.c);
-                NSLog(@"dmTest.message.details.extra.d=%@",details.extra.d);
+    -(void) onTestDataModelWithData:(NSDictionary *) data{
+        DM_Test *dmTest=[[DM_Test alloc] initWithDataSource:data];
+        if(dmTest){
+            for (NSInteger i=0; i<dmTest.images.count; i++) {
+                DM_Test_Images *image=[dmTest.images objectAtIndex:i];
+                NSLog(@"dmTest.image.timestamp=%@",image.timestamp);
+                NSLog(@"dmTest.image.imagename=%@",image.imagename);
+            }
+            for (NSInteger i=0; i<dmTest.messages.count; i++) {
+                DM_Test_Messages *msg=[dmTest.messages objectAtIndex:i];
+                NSLog(@"dmTest.message.message=%@",msg.message);
+                for (NSInteger j=0; j<msg.details.count; ++j) {
+                    DM_Test_Messages_Details *details=[msg.details objectAtIndex:i];
+                    NSLog(@"dmTest.message.details.content=%@",details.content);
+                    NSLog(@"dmTest.message.details.extra.a=%@",details.extra.a);
+                    NSLog(@"dmTest.message.details.extra.c=%@",details.extra.c);
+                    NSLog(@"dmTest.message.details.extra.d=%@",details.extra.d);
+                }
             }
         }
     }
-}
 #####请求内容
 #####![](https://github.com/LarryEmerson/LE_AFNetworking/blob/master/Example/IMG/LE_AFNetworkingRequestLog.png)
 #####请求回调主要内容
