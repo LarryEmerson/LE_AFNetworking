@@ -2,6 +2,46 @@
 
 ### #import "LE_AFNetworkings.h"
 ### LE_AFNetworking主要是针对于AFNetworking做了进一步的封装。
+
+####Demo工程演示了LE_AFNetworking的使用及NSDictionary字典内容直接转自定义数据模型对象。
+#####主要代码
+###### 请求 
+[[LE_AFNetworking sharedInstance] requestWithApi:@"http://git.oschina.net/larryemerson/ybs/raw/master/README.md" uri:@"" httpHead:nil requestType:RequestTypeGet parameter:nil delegate:self];
+###### 回调内容 
+-(void) request:(LE_AFNetworkingRequestObject *)request ResponedWith:(NSDictionary *)response{
+    NSLogObject(response);
+    [self onTestDataModelWithData:[response objectForKey:@"data"]];
+}
+###### 回调转对象并打印对象内容
+-(void) onTestDataModelWithData:(NSDictionary *) data{
+    DM_Test *dmTest=[[DM_Test alloc] initWithDataSource:data];
+    if(dmTest){
+        for (NSInteger i=0; i<dmTest.images.count; i++) {
+            DM_Test_Images *image=[dmTest.images objectAtIndex:i];
+            NSLog(@"dmTest.image.timestamp=%@",image.timestamp);
+            NSLog(@"dmTest.image.imagename=%@",image.imagename);
+        }
+        for (NSInteger i=0; i<dmTest.messages.count; i++) {
+            DM_Test_Messages *msg=[dmTest.messages objectAtIndex:i];
+            NSLog(@"dmTest.message.message=%@",msg.message);
+            for (NSInteger j=0; j<msg.details.count; ++j) {
+                DM_Test_Messages_Details *details=[msg.details objectAtIndex:i];
+                NSLog(@"dmTest.message.details.content=%@",details.content);
+                NSLog(@"dmTest.message.details.extra.a=%@",details.extra.a);
+                NSLog(@"dmTest.message.details.extra.c=%@",details.extra.c);
+                NSLog(@"dmTest.message.details.extra.d=%@",details.extra.d);
+            }
+        }
+    }
+}
+#####请求内容
+#####![](https://github.com/LarryEmerson/LE_AFNetworking/blob/master/Example/IMG/LE_AFNetworkingRequestLog.png)
+#####请求回调主要内容
+#####![](https://github.com/LarryEmerson/LE_AFNetworking/blob/master/Example/IMG/LE_AFNetworkingResponseLog.png)
+#####数据模型对象内容打印
+#####![](https://github.com/LarryEmerson/LE_AFNetworking/blob/master/Example/IMG/LE_AFNetworkingTestLog.png)
+
+### LE_AFNetworking 主要说明
 #### 1-提供了统一的请求接口：api，uri，httphead，requesttype，parameter，delegate，identification（用于区分相同请求条件）。
 #### 2-对Get&Head请求做了离线硬缓存，并且Get&Head请求支持自定义时间的内存缓存，避免重复请求。
 #### 3-回调数据统一为NSDictionary格式，可进一步通过key（KeyOfResponseArray）取到具体的数组格式的数据。

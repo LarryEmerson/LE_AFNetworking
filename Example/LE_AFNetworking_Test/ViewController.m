@@ -51,14 +51,11 @@
 }
 //===========================测试 LE_AFNetworking
 -(void) onTestLE_AFNetworking{
-    [[LE_AFNetworking sharedInstance] requestWithApi:@"http://git.oschina.net/larryemerson/ybs/raw/master/README.md" uri:@"" httpHead:nil requestType:RequestTypeGet parameter:nil useCache:NO duration:0 delegate:self];
+    [[LE_AFNetworking sharedInstance] requestWithApi:@"http://git.oschina.net/larryemerson/ybs/raw/master/README.md" uri:@"" httpHead:nil requestType:RequestTypeGet parameter:nil delegate:self];
 }
 -(void) request:(LE_AFNetworkingRequestObject *)request ResponedWith:(NSDictionary *)response{
     NSLogObject(response);
     [self onTestDataModelWithData:[response objectForKey:@"data"]];
-    request.afnetworkingSettings.identification
-    request.afnetworkingSettings.requestCounter
-    
 }
 -(void) request:(LE_AFNetworkingRequestObject *)request FailedWithStatusCode:(int)statusCode Message:(NSString *)message{
     NSLogObject(message);
