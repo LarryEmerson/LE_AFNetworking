@@ -56,6 +56,9 @@
 -(void) request:(LE_AFNetworkingRequestObject *)request ResponedWith:(NSDictionary *)response{
     NSLogObject(response);
     [self onTestDataModelWithData:[response objectForKey:@"data"]];
+    request.afnetworkingSettings.identification
+    request.afnetworkingSettings.requestCounter
+    
 }
 -(void) request:(LE_AFNetworkingRequestObject *)request FailedWithStatusCode:(int)statusCode Message:(NSString *)message{
     NSLogObject(message);
