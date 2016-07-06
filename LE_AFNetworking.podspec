@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 s.name             = 'LE_AFNetworking'
-s.version          = '0.1.4'
+s.version          = '0.1.5'
 s.summary          = '在AFNetworingd的基础上做的进一步封装'
 
 s.homepage         = 'https://github.com/LarryEmerson/LE_AFNetworking'
@@ -26,4 +26,5 @@ s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
 s.dependency "AFNetworking", "~> 3"
 s.dependency "Qiniu"
 s.dependency "LEFrameworks"
+s.dependency "FMDB"
 end

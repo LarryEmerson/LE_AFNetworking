@@ -7,8 +7,8 @@
 //
 
 #import "ViewController.h"
+#import "LE_AFNetworkings.h"
 
-//#import "LE_AFNetworkings.h"
 //@interface TestLEDataModel : LE_DataModel
 //@property (nonatomic , strong) NSString              * avatar;
 //@property (nonatomic , strong) NSString              * nickname;
