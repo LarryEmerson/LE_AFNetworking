@@ -133,16 +133,18 @@ typedef NS_ENUM(NSInteger, RequestType) {
 @interface LE_AFNetworking : NSObject{
     NSString *serverHost;
 }
+#pragma mark settings b4 using LE_Afnetwoking
 @property (nonatomic) BOOL enableDebug;
 @property (nonatomic) BOOL enableResponseDebug;
 @property (nonatomic) BOOL enableResponseWithJsonString;
 @property (nonatomic) NSString *md5Salt;
--(NSString *) getServerHost;
 -(void) setServerHost:(NSString *) host;
-+ (instancetype) sharedInstance;
 @property (nonatomic) id<LEAppMessageDelegate> messageDelegate;
++ (instancetype) sharedInstance;
+-(NSString *) getServerHost;
 -(void) onShowAppMessageWith:(NSString *) message;
-+ (int) getNetworkCounter;
+- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate;
+- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification;
 - (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate;
 - (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification;
 - (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest;
@@ -150,10 +152,10 @@ typedef NS_ENUM(NSInteger, RequestType) {
 - (NSDictionary *) getLocalCacheWithApi:(NSString *) api uri:(NSString *) uri parameter:(id) parameter;
 - (void) save:(NSString *) value WithKey:(NSString *) key;
 - (NSString *) getValueWithKey:(NSString *) key;
-+ (int)getTimeStamp ;
-+ (NSString *) JSONStringWithObject:(NSObject *) obj;
 + (NSString *) md5:(NSString *) str;
 -(void) removeDelegateWithKey:(NSString *) key Value:(id) value;
++ (int)getTimeStamp ;
++ (NSString *) JSONStringWithObject:(NSObject *) obj;
 //字典对象转为实体对象
 + (void) dictionaryToEntity:(NSDictionary *)dict entity:(NSObject*)entity;
 //实体对象转为字典对象

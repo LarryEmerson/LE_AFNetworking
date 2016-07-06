@@ -18,7 +18,7 @@ PODS:
     - FMDB/standard (= 2.6.2)
   - FMDB/standard (2.6.2)
   - HappyDNS (0.3.6)
-  - LE_AFNetworking (0.1.4):
+  - LE_AFNetworking (0.1.5):
     - AFNetworking (~> 3)
     - FMDB
     - LEFrameworks
@@ -39,7 +39,7 @@ SPEC CHECKSUMS:
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
   FMDB: 854a0341b4726e53276f2a8996f06f1b80f9259a
   HappyDNS: 81ee311e61d316684b88f2066302cdf3404cc9ea
-  LE_AFNetworking: c83afe79ce9f83a345c55328c45de10115fecbdb
+  LE_AFNetworking: 563f7b02006afa7c13054cba5f4df035b338d941
   LEFrameworks: d5f18fbb7cc613af707fbb632170efd85f29190b
   Qiniu: 0e92ff0d1b9afbc55275306671284e4ebeb08d03
 

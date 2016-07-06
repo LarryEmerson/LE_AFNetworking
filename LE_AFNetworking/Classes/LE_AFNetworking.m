@@ -9,6 +9,11 @@
 #import "LE_AFNetworking.h"
 #import <CommonCrypto/CommonDigest.h>
 #import <objc/runtime.h>
+
+@interface LE_AFNetworking ()
+-(int) getNetworkCounter;
+@end
+
 @implementation NSString(ExtensionAFN)
 -(id)JSONValue {
     NSData* data = [self dataUsingEncoding:NSUTF8StringEncoding];
@@ -62,7 +67,7 @@
     self.useCache=useCache;
     self.duration=duration;
     self.identification=identification; 
-    self.requestCounter=[LE_AFNetworking getNetworkCounter];
+    self.requestCounter=[[LE_AFNetworking sharedInstance] getNetworkCounter];
     if(delegate){
         [self.curDelegateArray addObject:delegate];
     }
@@ -81,7 +86,7 @@
     }
 }
 - (NSString *) getURL{
-    return [NSString stringWithFormat:@"%@%@/api/v1/%@",[[LE_AFNetworking sharedInstance] getServerHost],self.api,self.uri];
+    return [NSString stringWithFormat:@"%@%@/%@",[[LE_AFNetworking sharedInstance] getServerHost],self.api,self.uri];
 }
 - (NSString *) getKey{
     NSString *jsonString=@""; 
@@ -94,7 +99,7 @@
     return self.requestType==0?@"Get":(self.requestType==1?@"Post":(self.requestType==2?@"Head":(self.requestType==3?@"Put":(self.requestType==4?@"Patch":@"Delete"))));
 }
 + (NSString *) getKeyWithApi:(NSString *) api uri:(NSString *) uri parameter:(id) parameter{
-    return [[NSString stringWithFormat:@"%@%@/api/v1/%@",[[LE_AFNetworking sharedInstance] getServerHost],api,uri] stringByAppendingString:parameter?[parameter ObjToJSONString]:@""];
+    return [[NSString stringWithFormat:@"%@%@/%@",[[LE_AFNetworking sharedInstance] getServerHost],api,uri] stringByAppendingString:parameter?[parameter ObjToJSONString]:@""];
 }
 @end
 
@@ -104,10 +109,10 @@
 - (id) initWithSettings:(LE_AFNetworkingSettings *) settings{
     if([LE_AFNetworking sharedInstance].enableDebug){
         NSLogObject(@"===============================>");
-        NSLogObject(settings.getURL);
-        NSLogObject(settings.httpHead);
-        NSLogObject(settings.getRequestType);
-        NSLogObject(settings.parameter);
+        NSLog(@"URL=%@",settings.getURL);
+        NSLog(@"Head=%@",settings.httpHead);
+        NSLog(@"Type=%@",settings.getRequestType);
+        NSLog(@"Param=%@",settings.parameter);
     }
     self.afnetworkingSettings=settings;
     self=[super init];
@@ -122,7 +127,7 @@
     manager.responseSerializer = [AFHTTPResponseSerializer serializer];
     //
     [manager.responseSerializer setAcceptableStatusCodes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 400)]];
-    [manager.responseSerializer setAcceptableContentTypes:[[NSSet alloc] initWithObjects:@"text/javascript",@"application/json",@"text/json",@"text/html", nil]];
+    [manager.responseSerializer setAcceptableContentTypes:[[NSSet alloc] initWithObjects:@"text/javascript",@"application/json",@"text/json",@"text/html",@"text/plain", nil]];
     if(settings.httpHead&&settings.httpHead.count>0){//HTTPHEAD
         manager.requestSerializer=[AFJSONRequestSerializer serializer];
         for (NSString *key in settings.httpHead.allKeys) {
@@ -346,6 +351,7 @@
 }
 @end
 
+
 @implementation LE_AFNetworking{
     NSMutableDictionary *afnetworkingCache;
 }
@@ -354,7 +360,7 @@ static AFNetworkReachabilityStatus currentNetworkStatus;
 static LE_AFNetworking *theSharedInstance = nil;
 static NSUserDefaults *currentUserDefalts;
 static int networkCounter;
-+ (int) getNetworkCounter{return ++networkCounter;}
+- (int) getNetworkCounter{return ++networkCounter;}
 + (instancetype) sharedInstance { @synchronized(self) { if (theSharedInstance == nil) {
     theSharedInstance = [[self alloc] init];
     currentUserDefalts = [NSUserDefaults standardUserDefaults];
@@ -388,8 +394,15 @@ static int networkCounter;
         [self.messageDelegate onShowAppMessageWith:message];
     }
 }
-
 - (void) onEnableNetworkAlert{ enableNetWorkAlert=YES; }
+
+- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate{
+    return [self requestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter delegate:delegate Identification:nil];
+}
+
+- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
+    return [self requestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:NO duration:0 delegate:delegate Identification:identification];
+}
 - (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate{
     return [self requestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:nil];
 }
