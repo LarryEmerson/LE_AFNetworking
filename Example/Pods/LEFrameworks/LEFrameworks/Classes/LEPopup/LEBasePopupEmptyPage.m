@@ -1,6 +1,6 @@
 //
 //  LEBasePopupEmptyPage.m
-//  spark-client-ios
+//  https://github.com/LarryEmerson/LEFrameworks
 //
 //  Created by Larry Emerson on 15/2/4.
 //  Copyright (c) 2015年 Syan. All rights reserved.
@@ -14,8 +14,8 @@
     self.result=@"";
     self.delegate = delegate;
     self.globalVar=[LEUIFramework sharedInstance]; 
-    self=[super initWithFrame:CGRectMake(0, 0, self.globalVar.ScreenWidth, self.globalVar.ScreenHeight)];
-    [self setBackgroundColor:ColorMask8];
+    self=[super initWithFrame:CGRectMake(0, 0, LESCREEN_WIDTH, LESCREEN_HEIGHT)];
+    [self setBackgroundColor:LEColorMask8];
     [self initUI];
     if(self.needsEaseIn){
         [self easeIn];
