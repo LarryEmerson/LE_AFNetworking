@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 s.name             = 'LE_AFNetworking'
-s.version          = '0.1.9'
+s.version          = '0.2.0'
 s.summary          = '在AFNetworingd的基础上做的进一步封装'
 
 s.homepage         = 'https://github.com/LarryEmerson/LE_AFNetworking'
@@ -11,7 +11,7 @@ s.source           = { :git => 'https://github.com/LarryEmerson/LE_AFNetworking.
 
 s.ios.deployment_target = '7.0'
 
-s.source_files = "LE_AFNetworking/Classes/**/*.{h,m}"
+s.source_files = "LE_AFNetworking/Classes/*.{h,m}"
 
 # s.resource_bundles = {
 #   'LE_AFNetworking' => ['LE_AFNetworking/Assets/*.png']
