@@ -1,6 +1,6 @@
 {
   "name": "LE_AFNetworking",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "summary": "在AFNetworingd的基础上做的进一步封装",
   "homepage": "https://github.com/LarryEmerson/LE_AFNetworking",
   "license": {
@@ -12,12 +12,12 @@
   },
   "source": {
     "git": "https://github.com/LarryEmerson/LE_AFNetworking.git",
-    "tag": "0.1.9"
+    "tag": "0.2.0"
   },
   "platforms": {
     "ios": "7.0"
   },
-  "source_files": "LE_AFNetworking/Classes/**/*.{h,m}",
+  "source_files": "LE_AFNetworking/Classes/*.{h,m}",
   "requires_arc": true,
   "libraries": [
     "sqlite3",

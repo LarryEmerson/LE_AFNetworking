@@ -162,10 +162,11 @@ typedef NS_ENUM(NSInteger, LEAnchors) {
 #define LEIS_IPHONE (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
 #define LEIS_RETINA ([[UIScreen mainScreen] scale] >= 2.0)
 
-#define LESCREEN_BOUNDS ([[UIScreen mainScreen] bounds])
-#define LESCREEN_SCALE  ([[UIScreen mainScreen] scale])
-#define LESCREEN_WIDTH  ([[UIScreen mainScreen] bounds].size.width)
-#define LESCREEN_HEIGHT ([[UIScreen mainScreen] bounds].size.height)
+#define LESCREEN_BOUNDS     ([[UIScreen mainScreen] bounds])
+#define LESCREEN_SCALE      ([[UIScreen mainScreen] scale])
+#define LESCREEN_SCALE_INT  ((int)[[UIScreen mainScreen] scale])
+#define LESCREEN_WIDTH      ([[UIScreen mainScreen] bounds].size.width)
+#define LESCREEN_HEIGHT     ([[UIScreen mainScreen] bounds].size.height)
 #define LESCREEN_MAX_LENGTH (MAX(LESCREEN_WIDTH, LESCREEN_HEIGHT))
 #define LESCREEN_MIN_LENGTH (MIN(LESCREEN_WIDTH, LESCREEN_HEIGHT))
 
@@ -222,7 +223,7 @@ if(Color)[View.layer setBorderColor:[Color CGColor]]
 #define LEColorTableViewGray      [UIColor colorWithWhite:0.941 alpha:1.000]
 #define LEColorGrayDark           [UIColor colorWithRed:0.1959 green:0.2207 blue:0.2707 alpha:1.0]
 #define LEColorGray               [UIColor colorWithRed:0.6384 green:0.6588 blue:0.7095 alpha:1.0]
-#define LELEColorGrayLight        [UIColor colorWithRed:0.9412 green:0.9412 blue:0.9412 alpha:1.0]
+#define LEColorGrayLight        [UIColor colorWithRed:0.9412 green:0.9412 blue:0.9412 alpha:1.0]
 #define LEColorTextBlack          [UIColor colorWithRed:0.2549 green:0.2863 blue:0.3412 alpha:1.0]
 #define LEColorTextGray           [UIColor colorWithRed:0.6966 green:0.7178 blue:0.76    alpha:1.0]
 #define LEColorBlue               [UIColor colorWithRed:0.1922 green:0.4204 blue:0.8959 alpha:1.0]
@@ -348,10 +349,10 @@ if(Color)[View.layer setBorderColor:[Color CGColor]]
 @end
 
 @interface UIView (LEUIViewFrameWorks)
-+(CGRect) leGetFrameWithAutoLayoutSettings:(LEAutoLayoutSettings *) settings;
-@property (nonatomic) LEAutoLayoutSettings *leAutoLayoutSettings;
 @property (nonatomic) NSMutableArray *leAutoLayoutObservers;
 @property (nonatomic) NSMutableArray *leAutoResizeObservers;
++(CGRect) leGetFrameWithAutoLayoutSettings:(LEAutoLayoutSettings *) settings;
+@property (nonatomic) LEAutoLayoutSettings *leAutoLayoutSettings;
 -(instancetype) initWithAutoLayoutSettings:(LEAutoLayoutSettings *) settings;
 -(void) leAddAutoResizeRelativeView:(UIView *) changeView EdgeInsects:(UIEdgeInsets) edge;
 -(void) leSetFrame:(CGRect) rect;
@@ -364,50 +365,52 @@ if(Color)[View.layer setBorderColor:[Color CGColor]]
 @end
 
 @interface LEAutoLayoutLabelSettings : NSObject
-@property (nonatomic) NSString *leText;
-@property (nonatomic) int leFontSize;
-@property (nonatomic) UIFont *leFont;
-@property (nonatomic) int leWidth;
-@property (nonatomic) int leHeight;
-@property (nonatomic) UIColor *leColor;
-@property (nonatomic) int leLine;
-@property (nonatomic) NSTextAlignment leAlignment;
 -(id) initWithText:(NSString *) text FontSize:(int) fontSize Font:(UIFont *) font Width:(int) width Height:(int) height Color:(UIColor *) color Line:(int) line Alignment:(NSTextAlignment) alignment;
 @end
 
 @interface LEAutoLayoutUIButtonSettings : NSObject
-@property (nonatomic) NSString *leTitle;
-@property (nonatomic) int leTitleFontSize;
-@property (nonatomic) UIFont *leTitleFont;
-@property (nonatomic) UIImage *leImage;
-@property (nonatomic) UIImage *leBackgroundImage;
-@property (nonatomic) UIColor *leColorNormal;
-@property (nonatomic) UIColor *leColorSelected;
-@property (nonatomic) SEL leSEL;
-@property (nonatomic) int leMaxWidth;
-@property (nonatomic) UIView *leTargetView;
-@property (nonatomic) int leSpace;
--(id) initWithImage:(UIImage *) image SEL:(SEL) sel Target:(UIView *) view;
--(id) initWithTitle:(NSString *) title FontSize:(int) fontSize Font:(UIFont *) font Image:(UIImage *) image BackgroundImage:(UIImage *) background Color:(UIColor *) color SelectedColor:(UIColor *) colorSelected MaxWidth:(int) width SEL:(SEL) sel Target:(UIView *) view;
--(id) initWithTitle:(NSString *) title FontSize:(int) fontSize Font:(UIFont *) font Image:(UIImage *) image BackgroundImage:(UIImage *) background Color:(UIColor *) color SelectedColor:(UIColor *) colorSelected MaxWidth:(int) width SEL:(SEL) sel Target:(UIView *) view HorizontalSpace:(int) space;
+@property (nonatomic, readonly) NSString *leTitle;
+@property (nonatomic, readonly) int leTitleFontSize;
+@property (nonatomic, readonly) UIFont *leTitleFont;
+@property (nonatomic, readonly) UIImage *leImage;
+@property (nonatomic, readonly) UIImage *leBackgroundImage;
+@property (nonatomic, readonly) UIColor *leColorNormal;
+@property (nonatomic, readonly) UIColor *leColorSelected;
+@property (nonatomic, readonly) int leMaxWidth;
+@property (nonatomic, readonly) SEL leSEL;
+@property (nonatomic, readonly) id leTarget;
+@property (nonatomic, readonly) int leSpace;
+-(id) initWithImage:(UIImage *) image SEL:(SEL) sel Target:(id) target;
+-(id) initWithTitle:(NSString *) title FontSize:(int) fontSize Font:(UIFont *) font Image:(UIImage *) image BackgroundImage:(UIImage *) background Color:(UIColor *) color SelectedColor:(UIColor *) colorSelected MaxWidth:(int) width SEL:(SEL) sel Target:(id) target;
+-(id) initWithTitle:(NSString *) title FontSize:(int) fontSize Font:(UIFont *) font Image:(UIImage *) image BackgroundImage:(UIImage *) background Color:(UIColor *) color SelectedColor:(UIColor *) colorSelected MaxWidth:(int) width SEL:(SEL) sel Target:(id) target HorizontalSpace:(int) space;
 @end
 
-@interface LEUIFramework : NSObject{
-    BOOL canItBeTappedVariable;
-}
+@interface LEUIFramework : NSObject
+@property (nonatomic,readonly) UIColor *leColorNavigationBar;
+@property (nonatomic,readonly) UIColor *leColorNavigationContent;
+@property (nonatomic,readonly) UIColor *leColorViewContainer;
+@property (nonatomic,readonly) NSBundle *leFrameworksBundle;
+@property (nonatomic,readonly) NSDateFormatter *leDateFormatter;
 #pragma Singleton
 LESingleton_interface(LEUIFramework)
 #pragma public Variables
-@property (nonatomic) UIColor *leColorNavigationBar;
-@property (nonatomic) UIColor *leColorNavigationContent;
-@property (nonatomic) UIColor *leColorViewContainer;
-//
-@property (nonatomic) NSBundle *leFrameworksBundle;
 /*
- * @brief yyyy.MM.dd HH:mm
+ * @brief 设置导航栏颜色
  */
-@property (nonatomic) NSDateFormatter *leDateFormatter;
--(BOOL) canItBeTapped;
+-(void) leSetColorNavigationBar:(UIColor *) color;
+/*
+ * @brief 设置导航栏标题颜色
+ */
+-(void) leSetColorNavigationContent:(UIColor *) color;
+/*
+ * @brief 设置导航栏下方View的底色
+ */
+-(void) leSetColorViewContainer:(UIColor *) color;
+/*
+ * @brief 设置时间打印格式
+ */
+-(void) leSetDateFormatter:(NSDateFormatter *) formatter;
+-(BOOL) leCanItBeTapped;
 #pragma Common
 +(NSString *) leIntToString:(int) i;
 +(NSString *) leNumberToString:(NSNumber *) num;
@@ -429,12 +432,12 @@ LESingleton_interface(LEUIFramework)
 +(UIButton *) leGetCoveredButtonWithSettings:(LEAutoLayoutSettings *) settings SEL:(SEL) sel Target:(id) target;
 +(UIButton *) leGetButtonWithSettings:(LEAutoLayoutSettings *) settings ButtonSettings:(LEAutoLayoutUIButtonSettings *) buttonSettings ;
 
-+(UIImage *)leCreateQRForString:(NSString *)qrString Size:(CGFloat) size;
-+(UIImage*)leImageBlackToTransparent:(UIImage*)image withRed:(CGFloat)red andGreen:(CGFloat)green andBlue:(CGFloat)blue;
++(UIImage *) leCreateQRForString:(NSString *)qrString Size:(CGFloat) size;
++(UIImage*) leImageBlackToTransparent:(UIImage*)image withRed:(CGFloat)red andGreen:(CGFloat)green andBlue:(CGFloat)blue;
 
-+ (BOOL)leValidateMobile:(NSString *)mobileNum ;
++ (BOOL) leValidateMobile:(NSString *)mobileNum ;
 + (NSString *) leGetComboString:(id) string,...;
-+ (NSString *)leTypeForImageData:(NSData *)data;
++ (NSString *) leTypeForImageData:(NSData *)data;
 - (NSString *) leGetImagePathFromLEFrameworksWithName:(NSString *) name;
 - (UIImage *) leGetImageFromLEFrameworksWithName:(NSString *) name;
 @end

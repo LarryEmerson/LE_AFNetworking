@@ -15,17 +15,17 @@
 @end
 
 @implementation NSString(ExtensionAFN)
--(id)JSONValue {
+-(id)leJSONValue {
     NSData* data = [self dataUsingEncoding:NSUTF8StringEncoding];
     __autoreleasing NSError* error = nil;
     id result = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
     if (error != nil) return nil;
     return result;
 }
--(NSString *)md5{
+-(NSString *)leMd5{
     const char *cStr = [self UTF8String];
     unsigned char result[16];
-    CC_MD5(cStr, (CC_LONG)strlen(cStr), result); // This is the md5 call
+    CC_MD5(cStr, (CC_LONG)strlen(cStr), result); // This is the leMd5 call
     return [NSString stringWithFormat:
             @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
             result[0], result[1], result[2], result[3],
@@ -34,72 +34,122 @@
             result[12], result[13], result[14], result[15]
             ];
 }
--(NSString *)md5WithSalt:(NSString *) salt{
-    return [[[self md5] stringByAppendingString:salt] md5];
+-(NSString *)leMd5WithSalt:(NSString *) salt{
+    return [[[self leMd5] stringByAppendingString:salt] leMd5];
 }
--(NSString *)base64Encoder{
+-(NSString *)leBase64Encoder{
     NSData *data=[self dataUsingEncoding:NSUTF8StringEncoding];
     return [data base64EncodedStringWithOptions:0];
 }
--(NSString *)base64Decoder{
+-(NSString *)leBase64Decoder{
     NSData *nsdataFromBase64String = [[NSData alloc] initWithBase64EncodedString:self options:0];
     return [[NSString alloc] initWithData:nsdataFromBase64String encoding:NSUTF8StringEncoding];
 }
 @end
 
 @implementation NSObject (ExtensionAFN)
--(NSString *) ObjToJSONString{
-    return [LE_AFNetworking JSONStringWithObject:self];
+-(NSString *) leObjToJSONString{
+    return [LE_AFNetworking leJSONStringWithObject:self];
 }
 @end
+@interface LE_AFNetworkingSettings ()
+@property (nonatomic, readwrite) int               leRequestCounter;
+@property (nonatomic, readwrite) NSString          *leApi;
+@property (nonatomic, readwrite) NSString          *leUri;
+@property (nonatomic, readwrite) NSDictionary      *leHttpHead;
+@property (nonatomic, readwrite) LERequestType     leRequestType;
+@property (nonatomic, readwrite) id                leParameter;
+@property (nonatomic, readwrite) BOOL              leUseCache;
+@property (nonatomic, readwrite) int               leDuration;
+@property (nonatomic, readwrite) NSString          *leIdentification;//用于给请求加标签
+@property (nonatomic, readwrite) int               leCreateTimestamp;
+@property (nonatomic, readwrite) NSMutableArray    *leCurDelegateArray;
+@end
 @implementation LE_AFNetworkingSettings
-- (id) initWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate{
-    return [self initWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:nil];
+-(void) leSetRequestCount:(int) requestCount{
+    self.leRequestCounter=requestCount;
 }
-- (id) initWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
-    self.curDelegateArray=[[NSMutableArray alloc] init];
+-(void) leSetApi:(NSString *) api{
+    self.leApi=api;
+}
+-(void) leSetUri:(NSString *) uri{
+    self.leUri=uri;
+}
+-(void) leSetHttpHead:(NSDictionary *) httpHead{
+    self.leHttpHead=httpHead;
+}
+-(void) leSetRequestType:(LERequestType) requestType{
+    self.leRequestType=requestType;
+}
+-(void) leSetParameter:(id) parameter{
+    self.leParameter=parameter;
+}
+-(void) leSetUseCache:(BOOL) useCache{
+    self.leUseCache=useCache;
+}
+-(void) leSetDuration:(int) duration{
+    self.leDuration=duration;
+}
+-(void) leSetIdentification:(NSString *) identification{
+    self.leIdentification=identification;
+}
+-(void) leSetCreateTimeStamp:(int) createTimestamp{
+    self.leCreateTimestamp=createTimestamp;
+}
+-(void) leSetDelegateArray:(NSMutableArray *) delegateArray{
+    self.leCurDelegateArray=delegateArray;
+}
+-(void) leSetExtraObj:(id) extraObj{
+    self.leExtraObj=extraObj;
+}
+//
+- (id) initWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate{
+    return [self initWithApi:api uri:uri httpHead:httpHead LERequestType:LERequestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:nil];
+}
+- (id) initWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
+    self.leCurDelegateArray=[[NSMutableArray alloc] init];
     self=[super init];
-    self.api=api;
-    self.uri=uri;
-    self.httpHead=httpHead;
-    self.requestType=requestType;
-    self.parameter=parameter;
-    self.useCache=useCache;
-    self.duration=duration;
-    self.identification=identification; 
-    self.requestCounter=[[LE_AFNetworking sharedInstance] getNetworkCounter];
+    self.leApi=api;
+    self.leUri=uri;
+    self.leHttpHead=httpHead;
+    self.leRequestType=LERequestType;
+    self.leParameter=parameter;
+    self.leUseCache=useCache;
+    self.leDuration=duration;
+    self.leIdentification=identification;
+    self.leRequestCounter=[[LE_AFNetworking sharedInstance] getNetworkCounter];
     if(delegate){
-        [self.curDelegateArray addObject:delegate];
+        [self.leCurDelegateArray addObject:delegate];
     }
     return self;
 }
--(void) addUniqueDelegate:(id<LE_AFNetworkingDelegate>) delegate{
+-(void) leAddUniqueDelegate:(id<LE_AFNetworkingDelegate>) delegate{
     BOOL found=NO;
-    for (id<LE_AFNetworkingDelegate> del in self.curDelegateArray) {
+    for (id<LE_AFNetworkingDelegate> del in self.leCurDelegateArray) {
         if([del isEqual:delegate]){
             found=YES;
             break;
         }
     }
     if(!found){
-        [self.curDelegateArray addObject:delegate];
+        [self.leCurDelegateArray addObject:delegate];
     }
 }
-- (NSString *) getURL{
-    return [NSString stringWithFormat:@"%@%@/%@",[[LE_AFNetworking sharedInstance] getServerHost],self.api,self.uri];
+- (NSString *) leGetURL{
+    return [NSString stringWithFormat:@"%@%@/%@",[[LE_AFNetworking sharedInstance] leGetServerHost],self.leApi,self.leUri];
 }
-- (NSString *) getKey{
+- (NSString *) leGetKey{
     NSString *jsonString=@""; 
-    if(self.parameter&&![self.parameter isKindOfClass:[NSString class]]){
-        jsonString=[self.parameter ObjToJSONString];
+    if(self.leParameter&&![self.leParameter isKindOfClass:[NSString class]]){
+        jsonString=[self.leParameter leObjToJSONString];
     } 
-    return [[self getURL] stringByAppendingString:jsonString];
+    return [[self leGetURL] stringByAppendingString:jsonString];
 }
-- (NSString *) getRequestType{
-    return self.requestType==0?@"Get":(self.requestType==1?@"Post":(self.requestType==2?@"Head":(self.requestType==3?@"Put":(self.requestType==4?@"Patch":@"Delete"))));
+- (NSString *) leGetRequestType{
+    return self.leRequestType==0?@"Get":(self.leRequestType==1?@"Post":(self.leRequestType==2?@"Head":(self.leRequestType==3?@"Put":(self.leRequestType==4?@"Patch":@"Delete"))));
 }
-+ (NSString *) getKeyWithApi:(NSString *) api uri:(NSString *) uri parameter:(id) parameter{
-    return [[NSString stringWithFormat:@"%@%@/%@",[[LE_AFNetworking sharedInstance] getServerHost],api,uri] stringByAppendingString:parameter?[parameter ObjToJSONString]:@""];
++ (NSString *) leGetKeyWithApi:(NSString *) api uri:(NSString *) uri parameter:(id) parameter{
+    return [[NSString stringWithFormat:@"%@%@/%@",[[LE_AFNetworking sharedInstance] leGetServerHost],api,uri] stringByAppendingString:parameter?[parameter leObjToJSONString]:@""];
 }
 @end
 
@@ -107,37 +157,37 @@
     NSDictionary *responseObjectCache;
 }
 - (id) initWithSettings:(LE_AFNetworkingSettings *) settings{
-    if([LE_AFNetworking sharedInstance].enableDebug){
-        NSLogObject(@"===============================>");
-        NSLog(@"URL=%@",settings.getURL);
-        NSLog(@"Head=%@",settings.httpHead);
-        NSLog(@"Type=%@",settings.getRequestType);
-        NSLog(@"Param=%@",settings.parameter);
+    if([LE_AFNetworking sharedInstance].leEnableDebug){
+        LELogObject(@"===============================>");
+        LELog(@"URL=%@",settings.leGetURL);
+        LELog(@"Head=%@",settings.leHttpHead);
+        LELog(@"Type=%@",settings.leGetRequestType);
+        LELog(@"Param=%@",settings.leParameter);
     }
-    self.afnetworkingSettings=settings;
+    self.leAfnetworkingSettings=settings;
     self=[super init];
     return self;
 }
-- (void) execRequest:(BOOL) requestOrNot{
+- (void) leExecRequest:(BOOL) requestOrNot{
     if(!requestOrNot){
         return;
     }
-    LE_AFNetworkingSettings *settings=self.afnetworkingSettings;
+    LE_AFNetworkingSettings *settings=self.leAfnetworkingSettings;
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
     manager.responseSerializer = [AFHTTPResponseSerializer serializer];
     //
     [manager.responseSerializer setAcceptableStatusCodes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 400)]];
     [manager.responseSerializer setAcceptableContentTypes:[[NSSet alloc] initWithObjects:@"text/javascript",@"application/json",@"text/json",@"text/html",@"text/plain", nil]];
-    if(settings.httpHead&&settings.httpHead.count>0){//HTTPHEAD
+    if(settings.leHttpHead&&settings.leHttpHead.count>0){//HTTPHEAD
         manager.requestSerializer=[AFJSONRequestSerializer serializer];
-        for (NSString *key in settings.httpHead.allKeys) {
-            [manager.requestSerializer setValue:[settings.httpHead objectForKey:key] forHTTPHeaderField:key];
+        for (NSString *key in settings.leHttpHead.allKeys) {
+            [manager.requestSerializer setValue:[settings.leHttpHead objectForKey:key] forHTTPHeaderField:key];
         }
     }
-    switch (settings.requestType) {
+    switch (settings.leRequestType) {
         case 0://Get
         {
-            [manager GET:settings.getURL parameters:settings.parameter progress:^(NSProgress * _Nonnull downloadProgress) {
+            [manager GET:settings.leGetURL parameters:settings.leParameter progress:^(NSProgress * _Nonnull downloadProgress) {
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 [self onRespondedWithRequest:task responseObject:responseObject];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -147,7 +197,7 @@
             break;
         case 1://Post
         {
-            [manager POST:settings.getURL parameters:settings.parameter progress:^(NSProgress * _Nonnull downloadProgress){
+            [manager POST:settings.leGetURL parameters:settings.leParameter progress:^(NSProgress * _Nonnull downloadProgress){
                 
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 [self onRespondedWithRequest:task responseObject:responseObject];
@@ -158,7 +208,7 @@
             break;
         case 2://Head
         {
-            [manager HEAD:settings.getURL parameters:settings.parameter success:^(NSURLSessionDataTask * _Nonnull task) {
+            [manager HEAD:settings.leGetURL parameters:settings.leParameter success:^(NSURLSessionDataTask * _Nonnull task) {
                 [self onRespondedWithRequest:task responseObject:task];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 [self onRespondedWithRequest:task responseObject:nil error:error];
@@ -167,7 +217,7 @@
             break;
         case 3://Put
         {
-            [manager PUT:settings.getURL parameters:settings.parameter success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            [manager PUT:settings.leGetURL parameters:settings.leParameter success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 [self onRespondedWithRequest:task responseObject:responseObject];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 [self onRespondedWithRequest:task responseObject:nil error:error];
@@ -176,7 +226,7 @@
             break;
         case 4://Patch
         {
-            [manager PATCH:settings.getURL parameters:settings.parameter success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            [manager PATCH:settings.leGetURL parameters:settings.leParameter success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 [self onRespondedWithRequest:task responseObject:responseObject];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 [self onRespondedWithRequest:task responseObject:nil error:error];
@@ -186,7 +236,7 @@
             break;
         case 5://Delete
         {
-            [manager DELETE:settings.getURL parameters:settings.parameter success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject){
+            [manager DELETE:settings.leGetURL parameters:settings.leParameter success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject){
                 [self onRespondedWithRequest:task responseObject:responseObject];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error)  {
                 [self onRespondedWithRequest:task responseObject:nil error:error];
@@ -203,49 +253,49 @@
 - (void) onRespondedWithRequest:(NSURLSessionDataTask *) operation responseObject:(id) responseObject error:(NSError *) error {
     if(error||!responseObject){
         if(error.code==-1001){
-            [[LE_AFNetworking sharedInstance] onShowAppMessageWith:@"网络请求超时"];
+            [[LE_AFNetworking sharedInstance] leOnShowAppMessageWith:@"网络请求超时"];
         }
         //        else
         {
-            if((self.afnetworkingSettings.requestType==RequestTypeGet )){
-                NSString *json=[[LE_DataManager instanceOfStorage] getDataWithTable:CacheTable Key:self.afnetworkingSettings.getKey];
+            if((self.leAfnetworkingSettings.leRequestType==LERequestTypeGet )){
+                NSString *json=[[LE_DataManager sharedInstanceOfStorage] leGetDataWithTable:LECacheTable Key:self.leAfnetworkingSettings.leGetKey];
                 if(json){
-                    NSDictionary *response=[json JSONValue];
+                    NSDictionary *response=[json leJSONValue];
                     responseObjectCache=response;
-                    if(response&&self.afnetworkingSettings.curDelegateArray){
+                    if(response&&self.leAfnetworkingSettings.leCurDelegateArray){
                         [self onRespondWithResponse:responseObjectCache];
                         //                        NSMutableArray *list=[[NSMutableArray alloc] init];
-                        //                        for(int i=0;i<self.afnetworkingSettings.curDelegateArray.count;++i){
-                        //                            id<LE_AFNetworkingDelegate> delegate=[self.afnetworkingSettings.curDelegateArray objectAtIndex:i];
+                        //                        for(int i=0;i<self.leAfnetworkingSettings.curDelegateArray.count;++i){
+                        //                            id<LE_AFNetworkingDelegate> delegate=[self.leAfnetworkingSettings.curDelegateArray objectAtIndex:i];
                         //                            if(delegate){
                         //                                [list addObject:delegate];
-                        //                                [delegate request:self ResponedWith:response];
+                        //                                [delegate leRequest:self ResponedWith:response];
                         //                            }
                         //                        }
-                        //                        [self.afnetworkingSettings setCurDelegateArray:list];
+                        //                        [self.leAfnetworkingSettings setCurDelegateArray:list];
                     }
                 }
-            }else if(self.afnetworkingSettings.requestType==RequestTypeHead){
+            }else if(self.leAfnetworkingSettings.leRequestType==LERequestTypeHead){
                 NSHTTPURLResponse *res = (NSHTTPURLResponse *)operation.response;
-                id obj=[[res allHeaderFields] objectForKey:KeyOfResponseCount];
-                if(self.afnetworkingSettings.curDelegateArray){
+                id obj=[[res allHeaderFields] objectForKey:LEKeyOfResponseCount];
+                if(self.leAfnetworkingSettings.leCurDelegateArray){
                     NSMutableDictionary *muta=[[NSMutableDictionary alloc] init];
                     if(obj){
-                        [muta setObject:obj forKey:KeyOfResponseCount];
+                        [muta setObject:obj forKey:LEKeyOfResponseCount];
                     }else{
-                        [muta setObject:@"0" forKey:KeyOfResponseCount];
+                        [muta setObject:@"0" forKey:LEKeyOfResponseCount];
                     }
                     responseObjectCache=muta;
                     [self onRespondWithResponse:responseObjectCache];
                     //                    NSMutableArray *list=[[NSMutableArray alloc] init];
-                    //                    for(int i=0;i<self.afnetworkingSettings.curDelegateArray.count;++i){
-                    //                        id<LE_AFNetworkingDelegate> delegate=[self.afnetworkingSettings.curDelegateArray objectAtIndex:i];
+                    //                    for(int i=0;i<self.leAfnetworkingSettings.curDelegateArray.count;++i){
+                    //                        id<LE_AFNetworkingDelegate> delegate=[self.leAfnetworkingSettings.curDelegateArray objectAtIndex:i];
                     //                        if(delegate){
                     //                            [list addObject:delegate];
-                    //                            [delegate request:self ResponedWith:muta];
+                    //                            [delegate leRequest:self ResponedWith:muta];
                     //                        }
                     //                    }
-                    //                    [self.afnetworkingSettings setCurDelegateArray:list];
+                    //                    [self.leAfnetworkingSettings setCurDelegateArray:list];
                 }
             }
         }
@@ -261,99 +311,135 @@
             }
         }
         NSHTTPURLResponse *res = (NSHTTPURLResponse *)operation.response;
-        if([LE_AFNetworking sharedInstance].enableDebug){
-            NSLogTwoObjects(self.afnetworkingSettings.getURL,responseToJSONString);
+        if([LE_AFNetworking sharedInstance].leEnableDebug){
+            LELogTwoObjects(self.leAfnetworkingSettings.leGetURL,responseToJSONString);
         }
         id dataToObj=nil;
         if(responseToJSONString){
-            dataToObj= [responseToJSONString JSONValue];
+            dataToObj= [responseToJSONString leJSONValue];
         }
         if([dataToObj isKindOfClass:[NSDictionary class]]){
             response =[dataToObj mutableCopy];
         }else if([dataToObj isKindOfClass:[NSArray class]]){
-            [response setObject:dataToObj forKey:KeyOfResponseArray];
+            [response setObject:dataToObj forKey:LEKeyOfResponseArray];
         }
-        if(self.afnetworkingSettings.requestType==RequestTypeHead){
+        if(self.leAfnetworkingSettings.leRequestType==LERequestTypeHead){
             NSDictionary *header=[res allHeaderFields];
-            if(header&&[header objectForKey:KeyOfResponseCount]){
-                [response setObject:[header objectForKey:KeyOfResponseCount] forKey:KeyOfResponseCount];
+            if(header&&[header objectForKey:LEKeyOfResponseCount]){
+                [response setObject:[header objectForKey:LEKeyOfResponseCount] forKey:LEKeyOfResponseCount];
             }
         }
-        if([LE_AFNetworking sharedInstance].enableResponseWithJsonString){
+        if([LE_AFNetworking sharedInstance].leEnableResponseWithJsonString){
             if(responseToJSONString){
-                [response setObject:responseToJSONString forKey:KeyOfResponseAsJSON];
+                [response setObject:responseToJSONString forKey:LEKeyOfResponseAsJSON];
             }
-            [response setObject:[self.afnetworkingSettings getKey] forKey:@"URL"];
+            [response setObject:[self.leAfnetworkingSettings leGetKey] forKey:@"URL"];
         }
-        [response setObject:[NSNumber numberWithInteger:[res statusCode]] forKey:KeyOfResponseStatusCode];
-        if(response&&self.afnetworkingSettings.curDelegateArray){
-            if((self.afnetworkingSettings.requestType==RequestTypeGet||self.afnetworkingSettings.requestType==RequestTypeHead)){
-                NSString *json=[LE_AFNetworking JSONStringWithObject:response];
+        [response setObject:[NSNumber numberWithInteger:[res statusCode]] forKey:LEKeyOfResponseStatusCode];
+        if(response&&self.leAfnetworkingSettings.leCurDelegateArray){
+            if((self.leAfnetworkingSettings.leRequestType==LERequestTypeGet||self.leAfnetworkingSettings.leRequestType==LERequestTypeHead)){
+                NSString *json=[LE_AFNetworking leJSONStringWithObject:response];
                 if(json){
-                    [[LE_DataManager instanceOfStorage] addOrUpdateWithKey:self.afnetworkingSettings.getKey Value:json ToTable:CacheTable];
+                    [[LE_DataManager sharedInstanceOfStorage] leAddOrUpdateWithKey:self.leAfnetworkingSettings.leGetKey Value:json ToTable:LECacheTable];
                 }
             }
             responseObjectCache=response;
             [self onRespondWithResponse:responseObjectCache];
             //            NSMutableArray *list=[[NSMutableArray alloc] init];
-            //            for(int i=0;i<self.afnetworkingSettings.curDelegateArray.count;++i){
-            //                id<LE_AFNetworkingDelegate> delegate=[self.afnetworkingSettings.curDelegateArray objectAtIndex:i];
+            //            for(int i=0;i<self.leAfnetworkingSettings.curDelegateArray.count;++i){
+            //                id<LE_AFNetworkingDelegate> delegate=[self.leAfnetworkingSettings.curDelegateArray objectAtIndex:i];
             //                if(delegate){
             //                    [list addObject:delegate];
-            //                    [delegate request:self ResponedWith:response];
+            //                    [delegate leRequest:self ResponedWith:response];
             //                }
             //            }
-            //            [self.afnetworkingSettings setCurDelegateArray:list];
+            //            [self.leAfnetworkingSettings setCurDelegateArray:list];
         }
     }
 }
 - (void) returnCachedResponse{
-    if(responseObjectCache&&self.afnetworkingSettings.curDelegateArray){
+    if(responseObjectCache&&self.leAfnetworkingSettings.leCurDelegateArray){
         [self onRespondWithResponse:responseObjectCache];
         //        NSMutableArray *list=[[NSMutableArray alloc] init];
-        //        for(int i=0;i<self.afnetworkingSettings.curDelegateArray.count;++i){
-        //            id<LE_AFNetworkingDelegate> delegate=[self.afnetworkingSettings.curDelegateArray objectAtIndex:i];
+        //        for(int i=0;i<self.leAfnetworkingSettings.curDelegateArray.count;++i){
+        //            id<LE_AFNetworkingDelegate> delegate=[self.leAfnetworkingSettings.curDelegateArray objectAtIndex:i];
         //            if(delegate){
         //                [list addObject:delegate];
-        //                [delegate request:self ResponedWith:responseObjectCache];
+        //                [delegate leRequest:self ResponedWith:responseObjectCache];
         //            }
         //        }
-        //        [self.afnetworkingSettings setCurDelegateArray:list];
+        //        [self.leAfnetworkingSettings setCurDelegateArray:list];
     }
 }
 -(void) onRespondWithResponse:(NSDictionary *) response{
-    int statusCode=[[response objectForKey:KeyOfResponseStatusCode] intValue];
+    int statusCode=[[response objectForKey:LEKeyOfResponseStatusCode] intValue];
     BOOL requestFailed=statusCode/100!=2;
     NSString *errormsg=nil;
     if(requestFailed){
         if(statusCode!=500){
-            errormsg=[response objectForKey:KeyOfResponseErrormsg];
-            [[LE_AFNetworking sharedInstance] onShowAppMessageWith:errormsg];
+            errormsg=[response objectForKey:LEKeyOfResponseErrormsg];
+            [[LE_AFNetworking sharedInstance] leOnShowAppMessageWith:errormsg];
         }
     }
     NSMutableArray *list=[[NSMutableArray alloc] init];
-    for(int i=0;i<self.afnetworkingSettings.curDelegateArray.count;++i){
-        id<LE_AFNetworkingDelegate> delegate=[self.afnetworkingSettings.curDelegateArray objectAtIndex:i];
+    for(int i=0;i<self.leAfnetworkingSettings.leCurDelegateArray.count;++i){
+        id<LE_AFNetworkingDelegate> delegate=[self.leAfnetworkingSettings.leCurDelegateArray objectAtIndex:i];
         if(delegate){
             [list addObject:delegate];
             if(requestFailed){
-                if([delegate respondsToSelector:@selector(request:FailedWithStatusCode:Message:)]){
-                    [delegate request:self FailedWithStatusCode:statusCode Message:errormsg];
+                if([delegate respondsToSelector:@selector(leRequest:FailedWithStatusCode:Message:)]){
+                    [delegate leRequest:self FailedWithStatusCode:statusCode Message:errormsg];
                 }
             }else{
-                if([delegate respondsToSelector:@selector(request:ResponedWith:)]){
-                    [delegate request:self ResponedWith:responseObjectCache];
+                if([delegate respondsToSelector:@selector(leRequest:ResponedWith:)]){
+                    [delegate leRequest:self ResponedWith:responseObjectCache];
                 }
             }
         }
     }
-    [self.afnetworkingSettings setCurDelegateArray:list];
+    [self.leAfnetworkingSettings leSetDelegateArray:list];
 }
 @end
 
-
+@interface LE_AFNetworking ()
+@property (nonatomic) BOOL enableDebug;
+@property (nonatomic) BOOL enableResponseDebug;
+@property (nonatomic) BOOL enableResponseWithJsonString;
+@property (nonatomic) NSString *md5Salt;
+@property (nonatomic) id<LEAppMessageDelegate> messageDelegate;
+@end
 @implementation LE_AFNetworking{
     NSMutableDictionary *afnetworkingCache;
+}
+-(BOOL) leEnableDebug{
+    return self.enableDebug;
+}
+-(BOOL) leEnableResponseDebug{
+    return self.enableResponseDebug;
+}
+-(BOOL) leEnableResponseWithJsonString{
+    return self.enableResponseWithJsonString;
+}
+-(NSString *) leMd5Salt{
+    return self.md5Salt;
+}
+-(void) leSetEnableDebug:(BOOL) enable{
+    self.enableDebug=enable;
+}
+-(void) leSetEnableResponseDebug:(BOOL) enable{
+    self.enableResponseDebug=enable;
+}
+-(void) leSetEnableResponseWithJsonString:(BOOL) enable{
+    self.enableResponseWithJsonString=enable;
+}
+-(void) leSetServerHost:(NSString *) host{
+    self->serverHost=host;
+}
+-(void) leSetMD5Salt:(NSString *) salt{
+    
+}
+-(void) leSetMessageDelegate:(id<LEAppMessageDelegate>) delegate{
+    
 }
 static BOOL enableNetWorkAlert;
 static AFNetworkReachabilityStatus currentNetworkStatus;
@@ -370,7 +456,7 @@ static int networkCounter;
         if(enableNetWorkAlert){
             switch (status) {
                 case AFNetworkReachabilityStatusNotReachable:{
-                    [[LE_AFNetworking sharedInstance] onShowAppMessageWith:@"当前网络不可用，请检查网络"];
+                    [[LE_AFNetworking sharedInstance] leOnShowAppMessageWith:@"当前网络不可用，请检查网络"];
                     break;
                 }
                     //                case AFNetworkReachabilityStatusReachableViaWiFi:{ break; }
@@ -382,91 +468,89 @@ static int networkCounter;
     }];
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
 } } return theSharedInstance; }
--(NSString *) getServerHost{
+-(NSString *) leGetServerHost{
     if(self->serverHost)return self->serverHost;
     return @"";
 }
--(void) setServerHost:(NSString *) host{
-    self->serverHost=host;
-}
--(void) onShowAppMessageWith:(NSString *) message{
-    if(self.messageDelegate&&[self.messageDelegate respondsToSelector:@selector(onShowAppMessageWith:)]){
-        [self.messageDelegate onShowAppMessageWith:message];
+
+-(void) leOnShowAppMessageWith:(NSString *) message{
+    if(self.messageDelegate&&[self.messageDelegate respondsToSelector:@selector(leOnShowAppMessageWith:)]){
+        [self.messageDelegate leOnShowAppMessageWith:message];
     }
 }
 - (void) onEnableNetworkAlert{ enableNetWorkAlert=YES; }
 
-- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate{
-    return [self requestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter delegate:delegate Identification:nil];
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate{
+    return [self leRequestWithApi:api uri:uri httpHead:httpHead LERequestType:LERequestType parameter:parameter delegate:delegate Identification:nil];
 }
 
-- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
-    return [self requestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:NO duration:0 delegate:delegate Identification:identification];
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
+    return [self leRequestWithApi:api uri:uri httpHead:httpHead LERequestType:LERequestType parameter:parameter useCache:NO duration:0 delegate:delegate Identification:identification];
 }
-- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate{
-    return [self requestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:nil];
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate{
+    return [self leRequestWithApi:api uri:uri httpHead:httpHead LERequestType:LERequestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:nil];
 }
-- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
-    return [self requestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:useCache duration:duration delegate:delegate AutoRequest:YES Identification:identification];
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
+    return [self leRequestWithApi:api uri:uri httpHead:httpHead LERequestType:LERequestType parameter:parameter useCache:useCache duration:duration delegate:delegate AutoRequest:YES Identification:identification];
 }
-- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest{
-    return [self requestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:useCache duration:duration delegate:delegate AutoRequest:autoRequest Identification:nil];
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest{
+    return [self leRequestWithApi:api uri:uri httpHead:httpHead LERequestType:LERequestType parameter:parameter useCache:useCache duration:duration delegate:delegate AutoRequest:autoRequest Identification:nil];
 }
-- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest Identification:(NSString *) identification{
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) leRequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest Identification:(NSString *) identification{
     if(!afnetworkingCache){
         afnetworkingCache=[[NSMutableDictionary alloc] init];
     }
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
-    LE_AFNetworkingSettings *settings=[[LE_AFNetworkingSettings alloc] initWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:identification];
-    [settings setCreateTimestamp:[LE_AFNetworking getTimeStamp]];
-    if(settings.useCache&&(requestType==RequestTypeGet||requestType==RequestTypeHead)){
-        LE_AFNetworkingRequestObject *requestObject=[afnetworkingCache objectForKey:settings.getKey];
+    LE_AFNetworkingSettings *settings=[[LE_AFNetworkingSettings alloc] initWithApi:api uri:uri httpHead:httpHead LERequestType:leRequestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:identification];
+    [settings leSetCreateTimeStamp:[LE_AFNetworking leGetTimeStamp]];
+    if(settings.leUseCache&&(leRequestType==LERequestTypeGet||leRequestType==LERequestTypeHead)){
+        LE_AFNetworkingRequestObject *requestObject=[afnetworkingCache objectForKey:settings.leGetKey];
         if(requestObject){
-            if(([LE_AFNetworking getTimeStamp]-requestObject.afnetworkingSettings.createTimestamp-requestObject.afnetworkingSettings.duration)>0){
+            if(([LE_AFNetworking leGetTimeStamp]-requestObject.leAfnetworkingSettings.leCreateTimestamp-requestObject.leAfnetworkingSettings.leDuration)>0){
                 requestObject=nil;
             }
         }
         if(requestObject){
             settings=nil;
-            [requestObject.afnetworkingSettings addUniqueDelegate:delegate];
+            [requestObject.leAfnetworkingSettings leAddUniqueDelegate:delegate];
             [NSTimer scheduledTimerWithTimeInterval:0.01 target:requestObject selector:@selector(returnCachedResponse) userInfo:nil repeats:NO];
             return requestObject;
         }else {
             requestObject=[[LE_AFNetworkingRequestObject alloc] initWithSettings:settings];
-            [requestObject execRequest:autoRequest];
-            [afnetworkingCache setObject:requestObject forKey:requestObject.afnetworkingSettings.getKey];
+            [requestObject leExecRequest:autoRequest];
+            [afnetworkingCache setObject:requestObject forKey:requestObject.leAfnetworkingSettings.leGetKey];
             return requestObject;
         }
     }else{
         LE_AFNetworkingRequestObject *requestObject= [[LE_AFNetworkingRequestObject alloc] initWithSettings:settings];
-        [requestObject execRequest:autoRequest];
+        [requestObject leExecRequest:autoRequest];
         return requestObject;
     }
 }
--(void) removeDelegateWithKey:(NSString *) key Value:(id) value{
+-(void) leRemoveDelegateWithKey:(NSString *) key Value:(id) value{
     LE_AFNetworkingRequestObject *requestObject=[afnetworkingCache objectForKey:key];
     if(requestObject){
-        if(requestObject&&requestObject.afnetworkingSettings){
+        if(requestObject&&requestObject.leAfnetworkingSettings){
             NSMutableArray *list=[[NSMutableArray alloc] init];
-            for(int i=0;i<requestObject.afnetworkingSettings.curDelegateArray.count;++i){
-                id<LE_AFNetworkingDelegate> delegate=[requestObject.afnetworkingSettings.curDelegateArray objectAtIndex:i];
+            for(int i=0;i<requestObject.leAfnetworkingSettings.leCurDelegateArray.count;++i){
+                id<LE_AFNetworkingDelegate> delegate=[requestObject.leAfnetworkingSettings.leCurDelegateArray objectAtIndex:i];
                 if([delegate isEqual:value]){
-                    [requestObject.afnetworkingSettings.curDelegateArray removeObjectAtIndex:i];
+                    [requestObject.leAfnetworkingSettings.leCurDelegateArray removeObjectAtIndex:i];
                 }else if(delegate){
                     [list addObject:delegate];
                 }
             }
-            [requestObject.afnetworkingSettings setCurDelegateArray:list];
+            [requestObject.leAfnetworkingSettings leSetDelegateArray:list];
         }
     }
 } 
-- (void) save:(NSString *) value WithKey:(NSString *) key{
+- (void) leSave:(NSString *) value WithKey:(NSString *) key{
     if(value&&key){
         [currentUserDefalts setObject:value forKey:key];
         [currentUserDefalts synchronize];
     }
 }
-- (NSString *) getValueWithKey:(NSString *) key{
+- (NSString *) leGetValueWithKey:(NSString *) key{
     NSString *value=nil;
     if(key){
         value = [currentUserDefalts objectForKey:key];
@@ -474,24 +558,24 @@ static int networkCounter;
     return value;
 }
 
-- (NSDictionary *) getLocalCacheWithApi:(NSString *) api uri:(NSString *) uri parameter:(id) parameter{
-    NSString *key=[LE_AFNetworkingSettings getKeyWithApi:api uri:uri parameter:parameter];
+- (NSDictionary *) leGetLocalCacheWithApi:(NSString *) api uri:(NSString *) uri parameter:(id) parameter{
+    NSString *key=[LE_AFNetworkingSettings leGetKeyWithApi:api uri:uri parameter:parameter];
     if(key){
-        NSString *json=[[LE_DataManager instanceOfStorage] getDataWithTable:CacheTable Key:key];
+        NSString *json=[[LE_DataManager sharedInstanceOfStorage] leGetDataWithTable:LECacheTable Key:key];
         if(json){
-            return [json JSONValue];
+            return [json leJSONValue];
         }
     }
     return nil;
 }
-+ (int)getTimeStamp:(NSDate *)date {
++ (int)leGetTimeStamp:(NSDate *)date {
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     formatter.dateFormat = @"yyyy.MM.dd";
     NSString *sdate = [formatter stringFromDate:date];
     NSDate *ndate = [formatter dateFromString:sdate];
     return (int)ndate.timeIntervalSince1970;
 }
-+ (int)getTimeStamp {
++ (int)leGetTimeStamp {
     return [[NSDate date] timeIntervalSince1970];
 }
 +(NSString*) JSONStringWithDictionary:(NSDictionary *) dic {
@@ -516,16 +600,16 @@ static int networkCounter;
         id obj=[array objectAtIndex:i];
         if([obj isKindOfClass:[NSDictionary class]]||[obj isKindOfClass:[NSMutableDictionary class]]){
             if(!jsonString){
-                jsonString=[(NSDictionary *)obj ObjToJSONString];
+                jsonString=[(NSDictionary *)obj leObjToJSONString];
             }else{
-                jsonString=[NSString stringWithFormat:@"%@,%@",jsonString,[(NSDictionary *)obj ObjToJSONString]];
+                jsonString=[NSString stringWithFormat:@"%@,%@",jsonString,[(NSDictionary *)obj leObjToJSONString]];
             }
         }
     }
     jsonString=[NSString stringWithFormat:@"[%@]",jsonString];
     return jsonString;
 }
-+ (NSString *) JSONStringWithObject:(id) obj{
++ (NSString *) leJSONStringWithObject:(id) obj{
     NSString *jsonString = @"";
     if([[[UIDevice currentDevice].name lowercaseString] rangeOfString:@"simulator"].location !=NSNotFound){
         if([obj isKindOfClass:[NSDictionary class]]||[obj isSubclassOfClass:[NSDictionary class]]){
@@ -547,10 +631,10 @@ static int networkCounter;
     }
     return jsonString;
 }
-+ (NSString *) md5:(NSString *) str{
-    return [str md5WithSalt:[LE_AFNetworking sharedInstance].md5Salt?[LE_AFNetworking sharedInstance].md5Salt:@""];
++ (NSString *) leMd5:(NSString *) str{
+    return [str leMd5WithSalt:[LE_AFNetworking sharedInstance].leMd5Salt?[LE_AFNetworking sharedInstance].leMd5Salt:@""];
 }
-+ (void) dictionaryToEntity:(NSDictionary *)dict entity:(NSObject*)entity{
++ (void) leDictionaryToEntity:(NSDictionary *)dict entity:(NSObject*)entity{
     if (dict && entity) {
         for (NSString *keyName in [dict allKeys]) {//构建出属性的set方法
             NSString *destMethodName = [NSString stringWithFormat:@"set%@:",[keyName capitalizedString]]; //capitalizedString返回每个单词首字母大写的字符串（每个单词的其余字母转换为小写）
@@ -563,7 +647,7 @@ static int networkCounter;
         }
     }
 }
-+ (NSDictionary *) entityToDictionary:(id)entity{
++ (NSDictionary *) leEntityToDictionary:(id)entity{
     NSString *className=[NSString stringWithUTF8String:object_getClassName(entity)];
     Class clazz =  NSClassFromString(className);
     unsigned int count;
@@ -575,8 +659,8 @@ static int networkCounter;
         const char* propertyName = property_getName(prop);
         [propertyArray addObject:[NSString stringWithCString:propertyName encoding:NSUTF8StringEncoding]];
         //      const char* attributeName = property_getAttributes(prop);
-        //      NSLog(@"%@",[NSString stringWithUTF8String:propertyName]);
-        //      NSLog(@"%@",[NSString stringWithUTF8String:attributeName]);
+        //      LELog(@"%@",[NSString stringWithUTF8String:propertyName]);
+        //      LELog(@"%@",[NSString stringWithUTF8String:attributeName]);
         id value =nil;
         SuppressPerformSelectorLeakWarning(
                                            value=[entity performSelector:NSSelectorFromString([NSString stringWithUTF8String:propertyName])];

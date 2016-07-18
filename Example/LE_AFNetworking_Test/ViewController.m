@@ -44,45 +44,45 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     //    [self onTestDataModel];
-    [[LE_AFNetworking sharedInstance] setEnableDebug:YES];
-    [[LE_AFNetworking sharedInstance] setEnableResponseDebug:YES];
-    [[LE_AFNetworking sharedInstance] setEnableResponseWithJsonString:YES];
+    [[LE_AFNetworking sharedInstance] leSetEnableDebug:YES];
+    [[LE_AFNetworking sharedInstance] leSetEnableResponseDebug:YES];
+    [[LE_AFNetworking sharedInstance] leSetEnableResponseWithJsonString:YES];
     [self onTestLE_AFNetworking];
 }
 //===========================测试 LE_AFNetworking
 -(void) onTestLE_AFNetworking{
-    [[LE_AFNetworking sharedInstance] requestWithApi:@"http://git.oschina.net/larryemerson/ybs/raw/master/README.md" uri:@"" httpHead:nil requestType:RequestTypeGet parameter:nil delegate:self];
+    [[LE_AFNetworking sharedInstance] leRequestWithApi:@"http://git.oschina.net/larryemerson/ybs/raw/master/README.md" uri:@"" httpHead:nil LERequestType:LERequestTypeGet parameter:nil delegate:self];
 }
--(void) request:(LE_AFNetworkingRequestObject *)request ResponedWith:(NSDictionary *)response{
-    NSLogObject(response);
+-(void) leRequest:(LE_AFNetworkingRequestObject *)request ResponedWith:(NSDictionary *)response{
+    LELogObject(response);
     [self onTestDataModelWithData:[response objectForKey:@"data"]];
 }
--(void) request:(LE_AFNetworkingRequestObject *)request FailedWithStatusCode:(int)statusCode Message:(NSString *)message{
-    NSLogObject(message);
+-(void) leRequest:(LE_AFNetworkingRequestObject *)request FailedWithStatusCode:(int)statusCode Message:(NSString *)message{
+    LELogObject(message);
 }
 //===========================测试 数据模型 复杂的内嵌数组Json
 -(void) onTestDataModel{
     NSString *data=@"{\"id\":14,\"images\":[{\"id\":42,\"imagename\":\"moment_2_1457332231368\",\"timestamp\":1457332149},{\"id\":44,\"imagename\":\"moment_2_1457332231355\",\"timestamp\":1457332145}],\"messages\":[{\"id\":42,\"message\":\"iOS\\u56de\\u590d\\u65b0\\u8bc4\\u8bba\\u7684\\u56de\\u590d\",\"details\":[{\"id\":42,\"content\":\"content\",\"extra\":{\"a\":\"b\",\"c\":44,\"d\":\"e\"}},{\"id\":42,\"content\":\"content\"}]},{\"id\":42,\"message\":\"\\u56de\\u590d\\u65b0\\u8bc4\\u8bba\",\"details\":[{\"id\":42,\"content\":\"content\"},{\"id\":42,\"content\":\"content\",\"extra\":{\"a\":\"b\",\"c\":44,\"d\":\"e\"}}]}]}";
-    //    NSArray *array=[LE_DataModel initWithDataSources:[data JSONValue] ClassName:@"DM_Test"];
-    [self onTestDataModelWithData:[data JSONValue]];
+    //    NSArray *array=[LE_DataModel initWithDataSources:[data leJSONValue] ClassName:@"DM_Test"];
+    [self onTestDataModelWithData:[data leJSONValue]];
 }
 -(void) onTestDataModelWithData:(NSDictionary *) data{
     DM_Test *dmTest=[[DM_Test alloc] initWithDataSource:data];
     if(dmTest){
         for (NSInteger i=0; i<dmTest.images.count; i++) {
             DM_Test_Images *image=[dmTest.images objectAtIndex:i];
-            NSLog(@"dmTest.image.timestamp=%@",image.timestamp);
-            NSLog(@"dmTest.image.imagename=%@",image.imagename);
+            LELog(@"dmTest.image.timestamp=%@",image.timestamp);
+            LELog(@"dmTest.image.imagename=%@",image.imagename);
         }
         for (NSInteger i=0; i<dmTest.messages.count; i++) {
             DM_Test_Messages *msg=[dmTest.messages objectAtIndex:i];
-            NSLog(@"dmTest.message.message=%@",msg.message);
+            LELog(@"dmTest.message.message=%@",msg.message);
             for (NSInteger j=0; j<msg.details.count; ++j) {
                 DM_Test_Messages_Details *details=[msg.details objectAtIndex:i];
-                NSLog(@"dmTest.message.details.content=%@",details.content);
-                NSLog(@"dmTest.message.details.extra.a=%@",details.extra.a);
-                NSLog(@"dmTest.message.details.extra.c=%@",details.extra.c);
-                NSLog(@"dmTest.message.details.extra.d=%@",details.extra.d);
+                LELog(@"dmTest.message.details.content=%@",details.content);
+                LELog(@"dmTest.message.details.extra.a=%@",details.extra.a);
+                LELog(@"dmTest.message.details.extra.c=%@",details.extra.c);
+                LELog(@"dmTest.message.details.extra.d=%@",details.extra.d);
             }
         }
     }

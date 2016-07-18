@@ -8,14 +8,6 @@
 
 #import "LEUIFramework.h"
 
-
-
-
-
-
-
-
-
 @implementation UIViewController (LEExtension)
 -(void) leSetLeftBarButtonWithImage:(UIImage *)img SEL:(SEL)sel{
     [self.navigationItem setLeftBarButtonItem:[[UIBarButtonItem alloc] initWithImage:img style:UIBarButtonItemStylePlain target:self action:sel] animated:YES];
@@ -53,7 +45,7 @@
 -(void) leAddLocalNotification:(NSString *) notification{
     if(notification&&notification.length>0){
         LELocalNotification *noti=[[LELocalNotification alloc] init];
-        [noti setText:notification WithEnterTime:0.3 AndPauseTime:0.8 ReleaseWhenFinished:YES];
+        [noti leSetText:notification WithEnterTime:0.3 AndPauseTime:0.8 ReleaseWhenFinished:YES];
         [[UIApplication sharedApplication].keyWindow addSubview:noti];
     }
 }
@@ -435,8 +427,9 @@ static void * UILabelSupportCopyKey = (void *) @"UILabelSupportCopyKey";
 static void * LEAutoLayoutSettingsKey = (void *) @"LEAutoLayoutSettings";
 static void * LEAutoLayoutObserversKey = (void *) @"LEAutoLayoutObservers";
 static void * LEAutoResizeObserversKey = (void *) @"LEAutoResizeObservers";
-@implementation UIView (LEUIViewFrameWorks)
 
+
+@implementation UIView (LEUIViewFrameWorks)
 + (CGRect) leGetFrameWithAutoLayoutSettings:(LEAutoLayoutSettings *) settings{
     LEAnchors anchor=settings.leAnchor;
     UIView *relativeView=settings.leRelativeView;
@@ -695,9 +688,18 @@ static void * LEAutoResizeObserversKey = (void *) @"LEAutoResizeObservers";
         }
     }
 }
-
 @end
 
+@interface LEAutoLayoutLabelSettings ()
+@property (nonatomic, readwrite) NSString *leText;
+@property (nonatomic, readwrite) int leFontSize;
+@property (nonatomic, readwrite) UIFont *leFont;
+@property (nonatomic, readwrite) int leWidth;
+@property (nonatomic, readwrite) int leHeight;
+@property (nonatomic, readwrite) UIColor *leColor;
+@property (nonatomic, readwrite) int leLine;
+@property (nonatomic, readwrite) NSTextAlignment leAlignment;
+@end
 @implementation LEAutoLayoutLabelSettings
 
 -(id) initWithText:(NSString *) text FontSize:(int) fontSize Font:(UIFont *) font Width:(int) width Height:(int) height Color:(UIColor *) color Line:(int) line Alignment:(NSTextAlignment) alignment{
@@ -718,15 +720,27 @@ static void * LEAutoResizeObserversKey = (void *) @"LEAutoResizeObservers";
     return self;
 }
 @end
-
+@interface LEAutoLayoutUIButtonSettings ()
+@property (nonatomic, readwrite) NSString *leTitle;
+@property (nonatomic, readwrite) int leTitleFontSize;
+@property (nonatomic, readwrite) UIFont *leTitleFont;
+@property (nonatomic, readwrite) UIImage *leImage;
+@property (nonatomic, readwrite) UIImage *leBackgroundImage;
+@property (nonatomic, readwrite) UIColor *leColorNormal;
+@property (nonatomic, readwrite) UIColor *leColorSelected; 
+@property (nonatomic, readwrite) int leMaxWidth;
+@property (nonatomic, readwrite) int leSpace;
+@property (nonatomic, readwrite) SEL leSEL;
+@property (nonatomic, readwrite) id leTarget;
+@end
 @implementation LEAutoLayoutUIButtonSettings
--(id) initWithImage:(UIImage *) image SEL:(SEL) sel Target:(UIView *) view{
-    return [self initWithTitle:nil FontSize:0 Font:nil Image:image BackgroundImage:nil Color:nil SelectedColor:nil MaxWidth:0 SEL:sel Target:view];
+-(id) initWithImage:(UIImage *) image SEL:(SEL) sel Target:(id) target{
+    return [self initWithTitle:nil FontSize:0 Font:nil Image:image BackgroundImage:nil Color:nil SelectedColor:nil MaxWidth:0 SEL:sel Target:target];
 }
--(id) initWithTitle:(NSString *) title FontSize:(int) fontSize Font:(UIFont *) font Image:(UIImage *) image BackgroundImage:(UIImage *) background Color:(UIColor *) color SelectedColor:(UIColor *) colorSelected MaxWidth:(int) width SEL:(SEL) sel Target:(UIView *) view{
-    return [self initWithTitle:title FontSize:fontSize Font:font Image:image BackgroundImage:background Color:color SelectedColor:colorSelected MaxWidth:width SEL:sel Target:view HorizontalSpace:LEDefaultButtonHorizontalSpace];
+-(id) initWithTitle:(NSString *) title FontSize:(int) fontSize Font:(UIFont *) font Image:(UIImage *) image BackgroundImage:(UIImage *) background Color:(UIColor *) color SelectedColor:(UIColor *) colorSelected MaxWidth:(int) width SEL:(SEL) sel Target:(id) target{
+    return [self initWithTitle:title FontSize:fontSize Font:font Image:image BackgroundImage:background Color:color SelectedColor:colorSelected MaxWidth:width SEL:sel Target:target HorizontalSpace:LEDefaultButtonHorizontalSpace];
 }
--(id) initWithTitle:(NSString *) title FontSize:(int) fontSize Font:(UIFont *) font Image:(UIImage *) image BackgroundImage:(UIImage *) background Color:(UIColor *) color SelectedColor:(UIColor *) colorSelected  MaxWidth:(int) width SEL:(SEL) sel Target:(UIView *) view HorizontalSpace:(int)space{
+-(id) initWithTitle:(NSString *) title FontSize:(int) fontSize Font:(UIFont *) font Image:(UIImage *) image BackgroundImage:(UIImage *) background Color:(UIColor *) color SelectedColor:(UIColor *) colorSelected  MaxWidth:(int) width SEL:(SEL) sel Target:(id) target HorizontalSpace:(int)space{
     self=[super init];
     if(self){
         self.leSpace=space;
@@ -742,52 +756,58 @@ static void * LEAutoResizeObserversKey = (void *) @"LEAutoResizeObservers";
         if(self.leTitleFontSize>0) {
             self.leTitleFont=[UIFont systemFontOfSize:self.leTitleFontSize];
         }
-        self.leTargetView=view;
+        self.leTarget=target;
     }
     return self;
 }
 @end
 
+@interface LEUIFramework ()
+@property (nonatomic,readwrite) UIColor *leColorNavigationBar;
+@property (nonatomic,readwrite) UIColor *leColorNavigationContent;
+@property (nonatomic,readwrite) UIColor *leColorViewContainer;
+@property (nonatomic,readwrite) NSBundle *leFrameworksBundle;
+@property (nonatomic,readwrite) NSDateFormatter *leDateFormatter;
+@end
 @implementation LEUIFramework{
-    NSMutableDictionary *relativeViews;
-    int viewTagIncrement;
+    BOOL canItBeTappedVariable;
 }
 
 #pragma Singleton 
 LESingleton_implementation(LEUIFramework)
 //
--(BOOL) canItBeTapped{
-    if(self->canItBeTappedVariable){
+-(BOOL) leCanItBeTapped{
+    if(canItBeTappedVariable){
         return NO;
     }else{
-        self->canItBeTappedVariable=YES;
-        [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(tapVariableLogic) userInfo:nil repeats:NO];
+        canItBeTappedVariable=YES;
+        [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(leTapVariableLogic) userInfo:nil repeats:NO];
         return YES;
     }
 }
--(void) tapVariableLogic{
-    self->canItBeTappedVariable=NO;
+-(void) leTapVariableLogic{
+    canItBeTappedVariable=NO;
 }
--(void) extraInits{
-    //}
-    //-(id) init{
-    //    self=[super init];
-    //    if(self){
+-(void) leExtraInits{
     self.leColorNavigationBar=[UIColor colorWithRed:0.1686 green:0.1922 blue:0.2392 alpha:1.0];
     self.leColorNavigationContent=[UIColor whiteColor];
     self.leColorViewContainer=[UIColor colorWithRed:0.9647 green:0.9647 blue:0.9686 alpha:1.0];
-    
-    self.leFrameworksBundle = [NSBundle bundleWithPath:[[NSBundle mainBundle] pathForResource:@"LEFrameworks" ofType:@"bundle"]];
-    //    [self extraInits];
-    //    }
-    //    return self;
-    //}
-    //--------------------Init
-    //-(void) extraInits{
     self.leDateFormatter=[[NSDateFormatter alloc]init];
     [self.leDateFormatter setDateFormat:@"yyyy.MM.dd HH:mm"];
+    self.leFrameworksBundle = [NSBundle bundleWithPath:[[NSBundle mainBundle] pathForResource:@"LEFrameworks" ofType:@"bundle"]];
 }
- 
+-(void) leSetColorNavigationBar:(UIColor *) color{
+    self.leColorNavigationBar=color;
+}
+-(void) leSetColorNavigationContent:(UIColor *) color{
+    self.leColorNavigationContent=color;
+}
+-(void) leSetColorViewContainer:(UIColor *) color{
+    self.leColorViewContainer=color;
+}
+-(void) leSetDateFormatter:(NSDateFormatter *) formatter{
+    self.leDateFormatter=formatter;
+}
 #pragma  Common
 +(NSString *) leIntToString:(int) i{
     return [NSString stringWithFormat:@"%d",i];
@@ -904,7 +924,7 @@ LESingleton_implementation(LEUIFramework)
     [button setTitleColor:buttonSettings.leColorSelected forState:UIControlStateHighlighted];
     [button setImage:buttonSettings.leImage forState:UIControlStateNormal];
     [button setBackgroundImage:buttonSettings.leBackgroundImage forState:UIControlStateNormal];
-    [button addTarget:buttonSettings.leTargetView action:buttonSettings.leSEL forControlEvents:UIControlEventTouchUpInside];
+    [button addTarget:buttonSettings.leTarget action:buttonSettings.leSEL forControlEvents:UIControlEventTouchUpInside];
     [settings.leSuperView addSubview:button];
     [button.titleLabel setFont:buttonSettings.leTitleFont];
     settings.leButtonMaxWidth=buttonSettings.leMaxWidth;
@@ -1054,13 +1074,6 @@ void ProviderReleaseData (void *info, const void *data, size_t size){
 - (UIImage *) leGetImageFromLEFrameworksWithName:(NSString *) name{
     UIImage *image = [[UIImage alloc] initWithContentsOfFile:[self leGetImagePathFromLEFrameworksWithName:name]];
     return image;
-}
-
-
-
-
-
-
-
+} 
 
 @end

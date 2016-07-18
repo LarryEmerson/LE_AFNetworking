@@ -114,7 +114,7 @@
                     id subObject = dict[key];
                     if(subObject){
                         id propertyExistence=[LE_DataModel classExistProperty:key withObject:modelObject];
-                        //                        NSLog(@"%@",propertyExistence);
+                        //                        LELog(@"%@",propertyExistence);
                         if (propertyExistence == [NSString class]){
                             if([subObject isKindOfClass:[NSNull class]]){
                                 [modelObject setValue:@"" forKey:key];

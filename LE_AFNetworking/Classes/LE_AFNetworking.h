@@ -17,12 +17,9 @@
 #import <Foundation/NSURLRequest.h>
 #import "LEAppMessageDelegate.h"
 
-
-
-
 #define mark Attention 注意
-//  setServerHost 用于设置全局服务器地址
-//  md5Salt md5加密需要的
+//  leSetServerHost 用于设置全局服务器地址
+//  leMd5Salt leMd5加密需要的
 //  是否开启debug：
 //  enableDebug 全局debug
 //  enableResponseDebug 回调数据debug
@@ -36,128 +33,152 @@ Stuff; \
 _Pragma("clang diagnostic pop") \
 } while (0)
 //=======================Duration======================
-#define AFNetworkDuration       0
-#define AFNetworkDuration_2s    2
-#define AFNetworkDuration_5s    5
-#define AFNetworkDuration_10s   10
-#define AFNetworkDuration_20s   20
-#define AFNetworkDuration_30s   30
-#define AFNetworkDuration_45s   45
-#define AFNetworkDuration_1m    10
-#define AFNetworkDuration_5m    60*5
-#define AFNetworkDuration_10m   60*10
-#define AFNetworkDuration_30m   60*30
-#define AFNetworkDuration_1h    60*60
-#define AFNetworkDuration_3h    60*60*3
-#define AFNetworkDuration_5h    60*60*5
-#define AFNetworkDuration_12h   60*60*12
-#define AFNetworkDuration_24h   60*60*24
+#define LENetworkDuration       0
+#define LENetworkDuration_2s    2
+#define LENetworkDuration_5s    5
+#define LENetworkDuration_10s   10
+#define LENetworkDuration_20s   20
+#define LENetworkDuration_30s   30
+#define LENetworkDuration_45s   45
+#define LENetworkDuration_1m    10
+#define LENetworkDuration_5m    60*5
+#define LENetworkDuration_10m   60*10
+#define LENetworkDuration_30m   60*30
+#define LENetworkDuration_1h    60*60
+#define LENetworkDuration_3h    60*60*3
+#define LENetworkDuration_5h    60*60*5
+#define LENetworkDuration_12h   60*60*12
+#define LENetworkDuration_24h   60*60*24
 
 
-#define NSLogFunc   fprintf(stderr,"=> FUNC: %s\n",__FUNCTION__);
-#define NSLogObject(...) fprintf(stderr,"=> FUNC: %s %s\n",__FUNCTION__,[[NSString stringWithFormat:@"%@", ##__VA_ARGS__] UTF8String]);
-#define NSLogInt(...) fprintf(stderr,"=> FUNC: %s %s\n",__FUNCTION__,[[NSString stringWithFormat:@"%d", ##__VA_ARGS__] UTF8String]);
-#define NSLogStringAngInt(...) fprintf(stderr,"=> FUNC: %s %s\n",__FUNCTION__,[[NSString stringWithFormat:@"%@ : %d", ##__VA_ARGS__] UTF8String]);
-#define NSLogTwoObjects(...) fprintf(stderr,"=> FUNC: %s %s\n",__FUNCTION__,[[NSString stringWithFormat:@"@@\n-->%@\n-->%@", ##__VA_ARGS__] UTF8String]);
-#define NSLog(FORMAT, ...) fprintf(stderr,"=> (Line:%d) %s %s\n",__LINE__,__FUNCTION__,[[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String]);
+#define LELogFunc                   fprintf(stderr,"=> FUNC: %s\n",__FUNCTION__);
+#define LELogObject(...)            fprintf(stderr,"=> FUNC: %s %s\n",__FUNCTION__,[[NSString stringWithFormat:@"%@", ##__VA_ARGS__] UTF8String]);
+#define LELogInt(...)               fprintf(stderr,"=> FUNC: %s %s\n",__FUNCTION__,[[NSString stringWithFormat:@"%d", ##__VA_ARGS__] UTF8String]);
+#define LELogStringAngInt(...)      fprintf(stderr,"=> FUNC: %s %s\n",__FUNCTION__,[[NSString stringWithFormat:@"%@ : %d", ##__VA_ARGS__] UTF8String]);
+#define LELogTwoObjects(...)        fprintf(stderr,"=> FUNC: %s %s\n",__FUNCTION__,[[NSString stringWithFormat:@"@@\n-->%@\n-->%@", ##__VA_ARGS__] UTF8String]);
+#define LELog(FORMAT, ...)          fprintf(stderr,"=> (Line:%d) %s %s\n",__LINE__,__FUNCTION__,[[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String]);
 
 
-typedef NS_ENUM(NSInteger, RequestType) {
-    RequestTypeGet      = 0,
-    RequestTypePost     = 1,
-    RequestTypeHead     = 2,
-    RequestTypePut      = 3,
-    RequestTypePatch    = 4,
-    RequestTypeDelete   = 5
+typedef NS_ENUM(NSInteger, LERequestType) {
+    LERequestTypeGet      = 0,
+    LERequestTypePost     = 1,
+    LERequestTypeHead     = 2,
+    LERequestTypePut      = 3,
+    LERequestTypePatch    = 4,
+    LERequestTypeDelete   = 5
 };
-#define CacheTable  @"caches"
-#define CacheKey    @"cachekey"
-#define CacheValue  @"cachevalue"
+#define LECacheTable                @"caches"
+#define LECacheKey                  @"cachekey"
+#define LECacheValue                @"cachevalue"
 
-#define KeyOfResponseCount @"Count"
-#define KeyOfResponseStatusCode @"statuscode"
-#define KeyOfResponseErrormsg   @"errormsg"
-#define KeyOfResponseErrorno    @"errorno"
-#define KeyOfResponseArray @"arraycontent"
-#define KeyOfResponseAsJSON @"KeyOfResponseAsJSON"
-#define StatusCode200 200
-#define IntToString(num) [NSString stringWithFormat:@"%d", num]
-#define NSNumberToString(num) [NSString stringWithFormat:@"%@", num]
+#define LEKeyOfResponseCount        @"Count"
+#define LEKeyOfResponseStatusCode   @"statuscode"
+#define LEKeyOfResponseErrormsg     @"errormsg"
+#define LEKeyOfResponseErrorno      @"errorno"
+#define LEKeyOfResponseArray        @"arraycontent"
+#define LEKeyOfResponseAsJSON       @"LEKeyOfResponseAsJSON"
+#define LEStatusCode200             200
+#define LEIntToString(num)          [NSString stringWithFormat:@"%d", num]
+#define LENumberToString(num)       [NSString stringWithFormat:@"%@", num]
+
 @interface NSString (ExtensionAFN)
--(id)JSONValue;
--(NSString *)md5;
--(NSString *)md5WithSalt:(NSString *) salt;
--(NSString *)base64Encoder;
--(NSString *)base64Decoder;
+-(id)           leJSONValue;
+-(NSString *)   leMd5;
+-(NSString *)   leMd5WithSalt:(NSString *) salt;
+-(NSString *)   leBase64Encoder;
+-(NSString *)   leBase64Decoder;
 @end
 @interface NSObject (ExtensionAFN)
--(NSString*)ObjToJSONString;
+-(NSString*)    leObjToJSONString;
 @end  
 
 @class LE_AFNetworkingRequestObject;
 @protocol LE_AFNetworkingDelegate <NSObject>
 @optional
-- (void) request:(LE_AFNetworkingRequestObject *) request ResponedWith:(NSDictionary *) response; 
-- (void) request:(LE_AFNetworkingRequestObject *) request FailedWithStatusCode:(int) statusCode Message:(NSString *)message;
+- (void) leRequest:(LE_AFNetworkingRequestObject *) request ResponedWith:(NSDictionary *) response; 
+- (void) leRequest:(LE_AFNetworkingRequestObject *) request FailedWithStatusCode:(int) statusCode Message:(NSString *)message;
 @end
 
 @interface LE_AFNetworkingSettings : NSObject
-@property (nonatomic) int requestCounter;
-@property (nonatomic) NSString *api;
-@property (nonatomic) NSString *uri;
-@property (nonatomic) NSDictionary *httpHead;
-@property (nonatomic) RequestType requestType;
-@property (nonatomic) id parameter;
-@property (nonatomic) BOOL useCache;
-@property (nonatomic) int duration;
-@property (nonatomic) NSString *identification;//用于给请求加标签
-@property (nonatomic) int createTimestamp;
-@property (nonatomic) NSMutableArray *curDelegateArray;
-- (id) initWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate;
-- (id) initWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification;
-- (NSString *) getURL;
-- (NSString *) getKey;
-- (NSString *) getRequestType;
-+ (NSString *) getKeyWithApi:(NSString *) api uri:(NSString *) uri parameter:(id) parameter;
--(void) addUniqueDelegate:(id<LE_AFNetworkingDelegate>) delegate;
-@property (nonatomic) id extraObj;
+@property (nonatomic, readonly) int               leRequestCounter;
+@property (nonatomic, readonly) NSString          *leApi;
+@property (nonatomic, readonly) NSString          *leUri;
+@property (nonatomic, readonly) NSDictionary      *leHttpHead;
+@property (nonatomic, readonly) LERequestType     leRequestType;
+@property (nonatomic, readonly) id                leParameter;
+@property (nonatomic, readonly) BOOL              leUseCache;
+@property (nonatomic, readonly) int               leDuration;
+@property (nonatomic, readonly) NSString          *leIdentification;//用于给请求加标签
+@property (nonatomic, readonly) int               leCreateTimestamp;
+@property (nonatomic, readonly) NSMutableArray    *leCurDelegateArray;
+//
+@property (nonatomic) id                leExtraObj;
+//
+-(void) leSetRequestCount:(int) requestCount;
+-(void) leSetApi:(NSString *) api;
+-(void) leSetUri:(NSString *) uri;
+-(void) leSetHttpHead:(NSDictionary *) httpHead;
+-(void) leSetRequestType:(LERequestType) requestType;
+-(void) leSetParameter:(id) parameter;
+-(void) leSetUseCache:(BOOL) useCache;
+-(void) leSetDuration:(int) duration;
+-(void) leSetIdentification:(NSString *) identification;
+-(void) leSetCreateTimeStamp:(int) createTimestamp;
+-(void) leSetDelegateArray:(NSMutableArray *) delegateArray;
+-(void) leSetExtraObj:(id) extraObj;
+//
+- (id) initWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate;
+- (id) initWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification;
+- (NSString *)  leGetURL;
+- (NSString *)  leGetKey;
+- (NSString *)  leGetRequestType;
++ (NSString *)  leGetKeyWithApi:(NSString *) api uri:(NSString *) uri parameter:(id) parameter;
+- (void)        leAddUniqueDelegate:(id<LE_AFNetworkingDelegate>) delegate;
 @end
 
 @interface LE_AFNetworkingRequestObject : NSObject
-
-@property (nonatomic) LE_AFNetworkingSettings *afnetworkingSettings;
-- (id) initWithSettings:(LE_AFNetworkingSettings *) settings;
-- (void) execRequest:(BOOL) requestOrNot;
+@property (nonatomic) LE_AFNetworkingSettings               *leAfnetworkingSettings;
+- (id)      initWithSettings:(LE_AFNetworkingSettings *)    settings;
+- (void)    leExecRequest:(BOOL)                            requestOrNot;
 @end 
 
 @interface LE_AFNetworking : NSObject{
     NSString *serverHost;
 }
 #pragma mark settings b4 using LE_Afnetwoking
-@property (nonatomic) BOOL enableDebug;
-@property (nonatomic) BOOL enableResponseDebug;
-@property (nonatomic) BOOL enableResponseWithJsonString;
-@property (nonatomic) NSString *md5Salt;
--(void) setServerHost:(NSString *) host;
-@property (nonatomic) id<LEAppMessageDelegate> messageDelegate;
+//SET
+- (void)         leSetEnableDebug:(BOOL) enable;
+- (void)         leSetEnableResponseDebug:(BOOL) enable;
+- (void)         leSetEnableResponseWithJsonString:(BOOL) enable;
+- (void)         leSetServerHost:(NSString *) host;
+- (void)         leSetMD5Salt:(NSString *) salt;
+- (void)         leSetMessageDelegate:(id<LEAppMessageDelegate>) delegate;
+- (void)         leOnShowAppMessageWith:(NSString *) message;
+//GET
+- (BOOL)         leEnableDebug;
+- (BOOL)         leEnableResponseDebug;
+- (BOOL)         leEnableResponseWithJsonString;
+- (NSString *)   leMd5Salt;
+- (NSString *)   leGetServerHost;
+
 + (instancetype) sharedInstance;
--(NSString *) getServerHost;
--(void) onShowAppMessageWith:(NSString *) message;
-- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate;
-- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification;
-- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate;
-- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification;
-- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest;
-- (LE_AFNetworkingRequestObject *) requestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(RequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest Identification:(NSString *) identification;
-- (NSDictionary *) getLocalCacheWithApi:(NSString *) api uri:(NSString *) uri parameter:(id) parameter;
-- (void) save:(NSString *) value WithKey:(NSString *) key;
-- (NSString *) getValueWithKey:(NSString *) key;
-+ (NSString *) md5:(NSString *) str;
--(void) removeDelegateWithKey:(NSString *) key Value:(id) value;
-+ (int)getTimeStamp ;
-+ (NSString *) JSONStringWithObject:(NSObject *) obj;
+//
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate;
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification;
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate;
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification;
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest;
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest Identification:(NSString *) identification;
+//
+- (NSDictionary *)  leGetLocalCacheWithApi:(NSString *) api uri:(NSString *) uri parameter:(id) parameter;
+- (void)            leSave:(NSString *) value WithKey:(NSString *) key;
+- (NSString *)      leGetValueWithKey:(NSString *) key;
++ (NSString *)      leMd5:(NSString *) str;
+- (void)            leRemoveDelegateWithKey:(NSString *) key Value:(id) value;
++ (int)             leGetTimeStamp ;
++ (NSString *)      leJSONStringWithObject:(NSObject *) obj;
 //字典对象转为实体对象
-+ (void) dictionaryToEntity:(NSDictionary *)dict entity:(NSObject*)entity;
++ (void)            leDictionaryToEntity:(NSDictionary *)dict entity:(NSObject*)entity;
 //实体对象转为字典对象
-+ (NSDictionary *) entityToDictionary:(id)entity;
++ (NSDictionary *)  leEntityToDictionary:(id)entity;
 @end
