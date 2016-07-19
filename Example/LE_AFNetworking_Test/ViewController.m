@@ -51,7 +51,7 @@
 }
 //===========================测试 LE_AFNetworking
 -(void) onTestLE_AFNetworking{
-    [[LE_AFNetworking sharedInstance] leRequestWithApi:@"http://git.oschina.net/larryemerson/ybs/raw/master/README.md" uri:@"" httpHead:nil LERequestType:LERequestTypeGet parameter:nil delegate:self];
+    [[LE_AFNetworking sharedInstance] leRequestWithApi:@"http://git.oschina.net/larryemerson/ybs/raw/master/README.md" uri:@"" httpHead:nil requestType:LERequestTypeGet parameter:nil delegate:self];
 }
 -(void) leRequest:(LE_AFNetworkingRequestObject *)request ResponedWith:(NSDictionary *)response{
     LELogObject(response);

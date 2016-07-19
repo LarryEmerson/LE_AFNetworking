@@ -103,16 +103,16 @@
     self.leExtraObj=extraObj;
 }
 //
-- (id) initWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate{
-    return [self initWithApi:api uri:uri httpHead:httpHead LERequestType:LERequestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:nil];
+- (id) initWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(LERequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate{
+    return [self initWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:nil];
 }
-- (id) initWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
+- (id) initWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(LERequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
     self.leCurDelegateArray=[[NSMutableArray alloc] init];
     self=[super init];
     self.leApi=api;
     self.leUri=uri;
     self.leHttpHead=httpHead;
-    self.leRequestType=LERequestType;
+    self.leRequestType=requestType;
     self.leParameter=parameter;
     self.leUseCache=useCache;
     self.leDuration=duration;
@@ -480,28 +480,28 @@ static int networkCounter;
 }
 - (void) onEnableNetworkAlert{ enableNetWorkAlert=YES; }
 
-- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate{
-    return [self leRequestWithApi:api uri:uri httpHead:httpHead LERequestType:LERequestType parameter:parameter delegate:delegate Identification:nil];
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(LERequestType) requestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate{
+    return [self leRequestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter delegate:delegate Identification:nil];
 }
 
-- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
-    return [self leRequestWithApi:api uri:uri httpHead:httpHead LERequestType:LERequestType parameter:parameter useCache:NO duration:0 delegate:delegate Identification:identification];
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(LERequestType) requestType parameter:(id) parameter delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
+    return [self leRequestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:NO duration:0 delegate:delegate Identification:identification];
 }
-- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate{
-    return [self leRequestWithApi:api uri:uri httpHead:httpHead LERequestType:LERequestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:nil];
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(LERequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate{
+    return [self leRequestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:nil];
 }
-- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
-    return [self leRequestWithApi:api uri:uri httpHead:httpHead LERequestType:LERequestType parameter:parameter useCache:useCache duration:duration delegate:delegate AutoRequest:YES Identification:identification];
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(LERequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate Identification:(NSString *) identification{
+    return [self leRequestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:useCache duration:duration delegate:delegate AutoRequest:YES Identification:identification];
 }
-- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) LERequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest{
-    return [self leRequestWithApi:api uri:uri httpHead:httpHead LERequestType:LERequestType parameter:parameter useCache:useCache duration:duration delegate:delegate AutoRequest:autoRequest Identification:nil];
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(LERequestType) requestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest{
+    return [self leRequestWithApi:api uri:uri httpHead:httpHead requestType:requestType parameter:parameter useCache:useCache duration:duration delegate:delegate AutoRequest:autoRequest Identification:nil];
 }
-- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead LERequestType:(LERequestType) leRequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest Identification:(NSString *) identification{
+- (LE_AFNetworkingRequestObject *) leRequestWithApi:(NSString *) api uri:(NSString *) uri httpHead:(NSDictionary *) httpHead requestType:(LERequestType) leRequestType parameter:(id) parameter useCache:(BOOL) useCache duration:(int) duration delegate:(id<LE_AFNetworkingDelegate>)delegate  AutoRequest:(BOOL) autoRequest Identification:(NSString *) identification{
     if(!afnetworkingCache){
         afnetworkingCache=[[NSMutableDictionary alloc] init];
     }
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
-    LE_AFNetworkingSettings *settings=[[LE_AFNetworkingSettings alloc] initWithApi:api uri:uri httpHead:httpHead LERequestType:leRequestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:identification];
+    LE_AFNetworkingSettings *settings=[[LE_AFNetworkingSettings alloc] initWithApi:api uri:uri httpHead:httpHead requestType:leRequestType parameter:parameter useCache:useCache duration:duration delegate:delegate Identification:identification];
     [settings leSetCreateTimeStamp:[LE_AFNetworking leGetTimeStamp]];
     if(settings.leUseCache&&(leRequestType==LERequestTypeGet||leRequestType==LERequestTypeHead)){
         LE_AFNetworkingRequestObject *requestObject=[afnetworkingCache objectForKey:settings.leGetKey];

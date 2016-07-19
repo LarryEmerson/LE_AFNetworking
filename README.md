@@ -6,7 +6,7 @@
 ####Demo工程演示了LE_AFNetworking的使用及NSDictionary字典内容直接转自定义数据模型对象。
 #####主要代码
 ###### 请求 
-    [[LE_AFNetworking sharedInstance] leRequestWithApi:@"http://git.oschina.net/larryemerson/ybs/raw/master/README.md" uri:@"" httpHead:nil LERequestType:LERequestTypeGet parameter:nil delegate:self];
+    [[LE_AFNetworking sharedInstance] leRequestWithApi:@"http://git.oschina.net/larryemerson/ybs/raw/master/README.md" uri:@"" httpHead:nil requestType:requestTypeGet parameter:nil delegate:self];
 ###### 回调内容 
     -(void) leRequest:(LE_AFNetworkingRequestObject *)request ResponedWith:(NSDictionary *)response{
         LELogObject(response);
@@ -42,7 +42,7 @@
 #####![](https://github.com/LarryEmerson/LE_AFNetworking/blob/master/Example/IMG/LE_AFNetworkingTestLog.png)
 
 ### LE_AFNetworking 主要说明
-#### 1-提供了统一的请求接口：api，uri，httphead，LERequestType，parameter，delegate，identification（用于区分相同请求条件）。
+#### 1-提供了统一的请求接口：api，uri，httphead，requestType，parameter，delegate，identification（用于区分相同请求条件）。
 #### 2-对Get&Head请求做了离线硬缓存，并且Get&Head请求支持自定义时间的内存缓存，避免重复请求。
 #### 3-回调数据统一为NSDictionary格式，可进一步通过key（LEKeyOfResponseArray）取到具体的数组格式的数据。
 #### 4-另外设定leSetEnableResponseWithJsonString:YES后，可以在请求回调中返回Json格式的回调内容。使用工具JsonToObjCClassFile可以直接根据json数据生成需要的数据模型类文件。对应的key为LEKeyOfResponseAsJSON
