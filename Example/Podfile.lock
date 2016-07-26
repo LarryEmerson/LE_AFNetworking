@@ -21,7 +21,7 @@ PODS:
     - AFNetworking (~> 3)
     - FMDB
     - LEFrameworks
-  - LEFrameworks (0.4.3)
+  - LEFrameworks (0.4.5)
 
 DEPENDENCIES:
   - LE_AFNetworking (from `../`)
@@ -34,7 +34,7 @@ SPEC CHECKSUMS:
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
   FMDB: 854a0341b4726e53276f2a8996f06f1b80f9259a
   LE_AFNetworking: 4f2a082e69552833989fc7904ab87138ab828930
-  LEFrameworks: 1e1da256820463aeb76c702b2fc3345ca9363acb
+  LEFrameworks: 664200d406f9289ce3e7e646bce3055a8a380510
 
 PODFILE CHECKSUM: ab42e96dc284e8fcbe1c0cd314cc3509536e4906
 
