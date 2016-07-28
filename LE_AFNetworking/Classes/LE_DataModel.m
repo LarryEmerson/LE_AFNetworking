@@ -143,6 +143,8 @@
                                 id subModelObject=[LE_DataModel initWithDataSources:subObject ClassName:key Prefix:NSStringFromClass(class)];
                                 [modelObject setValue:subModelObject forKey:key];
                             }
+                        }else if(propertyExistence == [NSNull class]){
+                            NSLog(@"<<<<<%@ 缺少字段%@>>>>>",class,key);
                         }else if(subObject && ![subObject isKindOfClass:[NSNull class]]){
                             id subModelObject = [self handleDataModelEngine:subObject withClass:propertyExistence];
                             [modelObject setValue:subModelObject forKey:key];
