@@ -72,7 +72,10 @@
     Ivar *vars = class_copyIvarList([object class], &propertyCount);
     for (NSInteger i = 0; i < propertyCount; i++) {
         Ivar var = vars[i];
-        NSString * tempProperty = [[NSString stringWithUTF8String:ivar_getName(var)] stringByReplacingOccurrencesOfString:@"_" withString:@""];
+        NSString * tempProperty = [NSString stringWithUTF8String:ivar_getName(var)];//[[NSString stringWithUTF8String:ivar_getName(var)] stringByReplacingOccurrencesOfString:@"_" withString:@""];
+        if([tempProperty hasPrefix:@"_"]){
+            tempProperty=[tempProperty substringFromIndex:1];
+        }
         if([property isEqualToString:tempProperty]){
             NSString * type = [NSString stringWithUTF8String:ivar_getTypeEncoding(var)];
             if([type hasPrefix:@"@"]){
@@ -87,7 +90,10 @@
     vars = class_copyIvarList(class_getSuperclass([object class]), &propertyCount);
     for (NSInteger i = 0; i < propertyCount; i++) {
         Ivar var = vars[i];
-        NSString * tempProperty = [[NSString stringWithUTF8String:ivar_getName(var)] stringByReplacingOccurrencesOfString:@"_" withString:@""];
+        NSString * tempProperty = [NSString stringWithUTF8String:ivar_getName(var)];//[[NSString stringWithUTF8String:ivar_getName(var)] stringByReplacingOccurrencesOfString:@"_" withString:@""];
+        if([tempProperty hasPrefix:@"_"]){
+            tempProperty=[tempProperty substringFromIndex:1];
+        }
         if([property isEqualToString:tempProperty]){
             NSString * type = [NSString stringWithUTF8String:ivar_getTypeEncoding(var)];
             if([type hasPrefix:@"@"]){
@@ -114,7 +120,7 @@
                     id subObject = dict[key];
                     if(subObject){
                         id propertyExistence=[LE_DataModel classExistProperty:key withObject:modelObject];
-                        //                        LELog(@"%@",propertyExistence);
+                        //                                                NSLog(@"%@",propertyExistence);
                         if (propertyExistence == [NSString class]){
                             if([subObject isKindOfClass:[NSNull class]]){
                                 [modelObject setValue:@"" forKey:key];
