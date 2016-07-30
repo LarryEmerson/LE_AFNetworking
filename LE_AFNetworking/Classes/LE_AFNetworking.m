@@ -436,10 +436,10 @@
     self->serverHost=host;
 }
 -(void) leSetMD5Salt:(NSString *) salt{
-    
+    self.md5Salt=salt;
 }
 -(void) leSetMessageDelegate:(id<LEAppMessageDelegate>) delegate{
-    
+    self.messageDelegate=delegate;
 }
 static BOOL enableNetWorkAlert;
 static AFNetworkReachabilityStatus currentNetworkStatus;
