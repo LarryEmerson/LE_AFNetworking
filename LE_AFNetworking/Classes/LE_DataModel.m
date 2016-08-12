@@ -133,7 +133,7 @@
                             }else{
                                 [modelObject setValue:subObject forKey:key];
                             }
-                        }else if(propertyExistence == [NSDictionary class]){
+                        }else if(propertyExistence == [NSDictionary class] || propertyExistence == [NSMutableDictionary class]){
                             if([subObject isKindOfClass:[NSNull class]]){
                                 [modelObject setValue:@{} forKey:key];
                             }else{
@@ -142,7 +142,7 @@
                                 id subModelObject=[LE_DataModel handleDataModelEngine:subObject withClass:NSClassFromString(subClassName)];
                                 [modelObject setValue:subModelObject forKey:key];
                             }
-                        }else if (propertyExistence == [NSArray class]){
+                        }else if (propertyExistence == [NSArray class] || propertyExistence == [NSMutableArray class]){
                             if([subObject isKindOfClass:[NSNull class]]){
                                 [modelObject setValue:@[] forKey:key];
                             }else{

@@ -311,7 +311,7 @@
             }
         }
         NSHTTPURLResponse *res = (NSHTTPURLResponse *)operation.response;
-        if([LE_AFNetworking sharedInstance].leEnableDebug){
+        if([LE_AFNetworking sharedInstance].leEnableResponseDebug){
             LELogTwoObjects(self.leAfnetworkingSettings.leGetURL,responseToJSONString);
         }
         id dataToObj=nil;
@@ -320,7 +320,7 @@
         }
         if([dataToObj isKindOfClass:[NSDictionary class]]){
             response =[dataToObj mutableCopy];
-        }else if([dataToObj isKindOfClass:[NSArray class]]){
+        }else if([dataToObj isKindOfClass:[NSArray class]]){ 
             [response setObject:dataToObj forKey:LEKeyOfResponseArray];
         }
         if(self.leAfnetworkingSettings.leRequestType==LERequestTypeHead){
@@ -612,9 +612,9 @@ static int networkCounter;
 + (NSString *) leJSONStringWithObject:(id) obj{
     NSString *jsonString = @"";
     if([[[UIDevice currentDevice].name lowercaseString] rangeOfString:@"simulator"].location !=NSNotFound){
-        if([obj isKindOfClass:[NSDictionary class]]||[obj isSubclassOfClass:[NSDictionary class]]){
+        if([obj isKindOfClass:[NSDictionary class]]||[obj isMemberOfClass:[NSDictionary class]]){
             jsonString = [self JSONStringWithDictionary:obj];
-        }else if([obj isKindOfClass:[NSArray class]]||[obj isSubclassOfClass:[NSArray class]]){
+        }else if([obj isKindOfClass:[NSArray class]]||[obj isMemberOfClass:[NSArray class]]){
             jsonString = [self JSONStringWithArray:obj];
         }
     }else{
