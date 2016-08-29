@@ -604,6 +604,12 @@ static int networkCounter;
             }else{
                 jsonString=[NSString stringWithFormat:@"%@,%@",jsonString,[(NSDictionary *)obj leObjToJSONString]];
             }
+        }else {
+            if(jsonString.length>0){
+                jsonString=[NSString stringWithFormat:@"%@,\"%@\"",jsonString,obj];
+            }else {
+                jsonString=[NSString stringWithFormat:@"\"%@\"",obj];
+            }
         }
     }
     jsonString=[NSString stringWithFormat:@"[%@]",jsonString];
