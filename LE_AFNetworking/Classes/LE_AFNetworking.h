@@ -79,6 +79,7 @@ typedef NS_ENUM(NSInteger, LERequestType) {
 #define LEKeyOfResponseAsJSON       @"LEKeyOfResponseAsJSON"
 #define LEStatusCode200             200
 #define LEIntToString(num)          [NSString stringWithFormat:@"%d", num]
+#define LEFloatToString(num)          [NSString stringWithFormat:@"%f", num]
 #define LENumberToString(num)       [NSString stringWithFormat:@"%@", num]
 
 @interface NSString (ExtensionAFN)

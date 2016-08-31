@@ -586,10 +586,25 @@ static int networkCounter;
             if(!jsonString){
                 jsonString=@"";
             }
-            jsonString=[jsonString stringByAppendingString:@","];
+            if(jsonString.length>0){
+                jsonString=[jsonString stringByAppendingString:@","];
+            }
         }
-        value=[NSString stringWithFormat:@"%@",[dic objectForKey:key]];
-        jsonString=[NSString stringWithFormat:@"%@ \"%@\":\"%@\"",jsonString, key, value];
+        id obj=[dic objectForKey:key];
+        if([obj isKindOfClass:[NSDictionary class]]){
+            value=[LE_AFNetworking JSONStringWithDictionary:obj];
+            jsonString=[NSString stringWithFormat:@"%@ \"%@\":%@",jsonString, key, value];
+        }else if([obj isKindOfClass:[NSArray class]]){
+            value=[LE_AFNetworking JSONStringWithArray:obj];
+            jsonString=[NSString stringWithFormat:@"%@ \"%@\":%@",jsonString, key, value];
+        }else {
+            value=[NSString stringWithFormat:@"%@",obj];
+            value=[value stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""];
+            value=[value stringByReplacingOccurrencesOfString:@"\r\n" withString:@"\n"];
+            value=[value stringByReplacingOccurrencesOfString:@"\t" withString:@""];
+            value=[value stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            jsonString=[NSString stringWithFormat:@"%@ \"%@\":\"%@\"",jsonString, key, value];
+        }
     }
     jsonString=[NSString stringWithFormat:@"{%@}",jsonString];
     return jsonString;
@@ -602,7 +617,11 @@ static int networkCounter;
             if(!jsonString){
                 jsonString=[(NSDictionary *)obj leObjToJSONString];
             }else{
-                jsonString=[NSString stringWithFormat:@"%@,%@",jsonString,[(NSDictionary *)obj leObjToJSONString]];
+                if(jsonString.length>0){
+                    jsonString=[NSString stringWithFormat:@"%@,%@",jsonString,[(NSDictionary *)obj leObjToJSONString]];
+                }else{
+                    jsonString=[(NSDictionary *)obj leObjToJSONString];
+                }
             }
         }else {
             if(jsonString.length>0){
