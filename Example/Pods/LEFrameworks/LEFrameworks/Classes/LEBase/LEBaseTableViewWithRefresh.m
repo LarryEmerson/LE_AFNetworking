@@ -64,14 +64,14 @@
     typeof(self) __weak weakSelf = self;
     refreshHeader.refreshBlock=^(){
         LESuppressPerformSelectorLeakWarning(
-                                           [weakSelf performSelector:NSSelectorFromString(@"onDelegateRefreshData")];
-                                           );
+                                             [weakSelf performSelector:NSSelectorFromString(@"onDelegateRefreshData")];
+                                             );
     };
     refreshFooter=[[LERefreshFooter alloc] initWithTarget:self];
     refreshFooter.refreshBlock=^(){
         LESuppressPerformSelectorLeakWarning(
-                                           [weakSelf performSelector:NSSelectorFromString(@"onDelegateLoadMore")];
-                                           );
+                                             [weakSelf performSelector:NSSelectorFromString(@"onDelegateLoadMore")];
+                                             );
     };
 }
 -(void) leOnAutoRefresh{
@@ -86,11 +86,12 @@
     refreshFooter.isEnabled=enable;
 }
 -(void) leOnStopTopRefresh {
-    LELogFunc;
+    //    LELogFunc;
+    [self reloadData];
     [self onStopRefreshLogic];
 }
 -(void) leOnStopBottomRefresh {
-    LELogFunc;
+    //    LELogFunc;
     [self onStopRefreshLogic];
 }
 -(void) onStopRefreshLogic{
@@ -98,7 +99,7 @@
         // 结束刷新
         [refreshHeader onEndRefresh];
         [refreshFooter onEndRefresh];
-        [self reloadData];
+//        [self reloadData];
     });
 }
 

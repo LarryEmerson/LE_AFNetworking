@@ -61,7 +61,10 @@
     [self.layer setMasksToBounds:YES];
 }
 -(void) leAddTapEventWithSEL:(SEL)sel Target:(id) target{
-    [target setUserInteractionEnabled:YES];
+    if([target respondsToSelector:@selector(setUserInteractionEnabled:)]){
+        [target setUserInteractionEnabled:YES];
+    }
+    [self setUserInteractionEnabled:YES];
     [self addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:target action:sel]];
 }
 -(UIImageView *) leAddTopSplitWithColor:(UIColor *) color Offset:(CGPoint) offset Width:(int) width{
@@ -141,7 +144,7 @@ static void * LEAutoLayoutLabelSettingsKey = (void *) @"LEAutoLayoutLabelSetting
     if(self.leAutoLayoutLabelSettings){
         int width=self.leAutoLayoutLabelSettings.leWidth;
         int height=self.leAutoLayoutLabelSettings.leHeight;
-        if(width==0||width>LESCREEN_WIDTH){
+        if(width<=0/*||width>LESCREEN_WIDTH*/){
             width=LESCREEN_WIDTH;
         }
         CGSize size=CGSizeZero;
@@ -197,8 +200,8 @@ static void * LEAutoLayoutLabelSettingsKey = (void *) @"LEAutoLayoutLabelSetting
         if(width==0||width>LESCREEN_WIDTH){
             width=LESCREEN_WIDTH;
         }
-        CGRect rect = [self.text boundingRectWithSize:CGSizeMake(width, LELabelMaxSize.height) options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading attributes:dic context:nil];
-        [self leSetSize:CGSizeMake(rect.size.width, rect.size.height)]; 
+        CGRect rect = [attributedString boundingRectWithSize:CGSizeMake(width, LELabelMaxSize.height) options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading context:nil];
+        [self leSetSize:CGSizeMake(rect.size.width, rect.size.height)];
         [self leRedrawAttributedStringWithRect:rect LineSpace:space];
     }
 }
@@ -326,8 +329,8 @@ static void * LEAutoLayoutButtonSettingsKey = (void *) @"LEAutoLayoutButtonSetti
     CGSize finalSize=self.leAutoLayoutSettings.leSize;
     while (YES) {
         CGSize textSize=[self.titleLabel leGetLabelTextSize];
-        if(textSize.width+LEDefaultButtonHorizontalSpace*2>finalSize.width){
-            finalSize.width = textSize.width+LEDefaultButtonHorizontalSpace*2;
+        if(textSize.width+self.leAutoLayoutButtonSettings.leSpace*2>finalSize.width){
+            finalSize.width = textSize.width+self.leAutoLayoutButtonSettings.leSpace*2;
         }
         if(textSize.height+LEDefaultButtonVerticalSpace*2>finalSize.height){
             finalSize.height = textSize.height+LEDefaultButtonVerticalSpace*2;
@@ -559,6 +562,7 @@ static void * LEAutoResizeObserversKey = (void *) @"LEAutoResizeObservers";
             [settings.leRelativeChangeView.leAutoResizeObservers addObject:self];
         }
     }
+    [self leExtraInits];
     return self;
 }
 -(void) leAddAutoResizeRelativeView:(UIView *) changeView EdgeInsects:(UIEdgeInsets) edge{
@@ -725,6 +729,9 @@ static void * LEAutoResizeObserversKey = (void *) @"LEAutoResizeObservers";
 @end
 
 @interface LEUIFramework ()
+@property (nonatomic,readwrite) int leNavigationButtonFontsize;
+@property (nonatomic,readwrite) UIImage *leImageNavigationBack;
+@property (nonatomic,readwrite) UIImage *leImageNavigationBar;
 @property (nonatomic,readwrite) UIColor *leColorNavigationBar;
 @property (nonatomic,readwrite) UIColor *leColorNavigationContent;
 @property (nonatomic,readwrite) UIColor *leColorViewContainer;
@@ -751,12 +758,24 @@ LESingleton_implementation(LEUIFramework)
     canItBeTappedVariable=NO;
 }
 -(void) leExtraInits{
-    self.leColorNavigationBar=[UIColor colorWithRed:0.1686 green:0.1922 blue:0.2392 alpha:1.0];
-    self.leColorNavigationContent=[UIColor whiteColor];
+    self.leNavigationButtonFontsize=LELayoutFontSize16;
+    self.leImageNavigationBar=[LEColorWhite leImageStrechedFromSizeOne];
+    self.leColorNavigationBar=LEColorWhite;
+    self.leColorNavigationContent=LEColorBlack;
     self.leColorViewContainer=[UIColor colorWithRed:0.9647 green:0.9647 blue:0.9686 alpha:1.0];
     self.leDateFormatter=[[NSDateFormatter alloc]init];
     [self.leDateFormatter setDateFormat:@"yyyy.MM.dd HH:mm"];
     self.leFrameworksBundle = [NSBundle bundleWithPath:[[NSBundle mainBundle] pathForResource:@"LEFrameworks" ofType:@"bundle"]];
+    self.leImageNavigationBack=[self leGetImageFromLEFrameworksWithName:@"LE_web_icon_backward_off"];
+}
+-(void) leSetNavigationButtonFontsize:(int) fontsize{
+    self.leNavigationButtonFontsize=fontsize;
+}
+-(void) leSetImageNavigationBack:(UIImage *) image{
+    self.leImageNavigationBack=image;
+}
+-(void) leSetImageNavigationBar:(UIImage *) image{
+    self.leImageNavigationBar=image;
 }
 -(void) leSetColorNavigationBar:(UIColor *) color{
     self.leColorNavigationBar=color;
@@ -779,6 +798,22 @@ LESingleton_implementation(LEUIFramework)
 }
 +(UIFont *) leGetSystemFontWithSize:(int)size{
     return [UIFont systemFontOfSize:size];
+}
++(UIView *) getTransparentCircleLayerForView:(UIView *) view Diameter:(float) diameter MaskColor:(UIColor *) maskColor{
+    UIView *layerView=[[UIView alloc] initWithFrame:view.bounds];
+    CAShapeLayer *layer=[CAShapeLayer layer];
+    layer.fillColor=maskColor.CGColor;
+    UIBezierPath *path = [UIBezierPath bezierPathWithRect:view.bounds];
+    [path moveToPoint:CGPointMake(CGRectGetWidth(view.bounds) / 2, (CGRectGetHeight(view.bounds) -diameter) / 2)];
+    [path addArcWithCenter:view.center radius:diameter / 2 startAngle:-M_PI / 2 endAngle:M_PI *3.0/2.0 clockwise:YES];
+    layer.path=path.CGPath;
+    layer.fillRule=kCAFillRuleEvenOdd;
+    layerView.layer.cornerRadius=layer.cornerRadius;
+    layerView.layer.masksToBounds=layer.masksToBounds;
+    [layerView.layer addSublayer:layer];
+    layerView.layer.masksToBounds=YES;
+    [view addSubview:layerView];
+    return layerView;
 }
 #pragma UIImage
 + (UIImage *) leGetMiddleStrechedImage:(UIImage *) image{
@@ -892,6 +927,7 @@ LESingleton_implementation(LEUIFramework)
     int space=buttonSettings.leSpace;
     if(space==0){
         space=LEDefaultButtonHorizontalSpace;
+        buttonSettings.leSpace=space;
     }
     CGSize finalSize=settings.leSize;
     while (YES) {

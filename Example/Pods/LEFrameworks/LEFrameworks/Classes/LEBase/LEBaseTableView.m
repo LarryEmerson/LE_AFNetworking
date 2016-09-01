@@ -22,6 +22,7 @@
 @property (nonatomic, readwrite) id<LETableViewDataSourceDelegate> leDataSourceDelegate;
 @property (nonatomic, readwrite) id<LETableViewCellSelectionDelegate> leCellSelectionDelegate;
 @property (nonatomic, readwrite) BOOL leIsAutoRefresh;
+@property (nonatomic, readwrite) BOOL leDisableTapEvent;
 @end
 @interface LEBaseTableView ()
 @property (nonatomic, readwrite) LEBaseEmptyTableViewCell *leEmptyTableViewCell;
@@ -65,13 +66,33 @@
 -(void) leSetParentView:(UIView *) view{
     self.leParentView=view;
 }
+-(id) initWithSuperView:(UIView *) superView GetDataDelegate:(id<LETableViewDataSourceDelegate>) get TableViewCellSelectionDelegate:(id<LETableViewCellSelectionDelegate>) selection{
+    return [self initWithSuperView:superView TableViewCell:nil EmptyTableViewCell:nil GetDataDelegate:get TableViewCellSelectionDelegate:selection];
+}
+-(id) initWithSuperView:(UIView *) superView TableViewCell:(NSString *) cell EmptyTableViewCell:(NSString *) empty GetDataDelegate:(id<LETableViewDataSourceDelegate>) get TableViewCellSelectionDelegate:(id<LETableViewCellSelectionDelegate>) selection{
+    return [self initWithSuperView:superView TableViewCell:cell EmptyTableViewCell:empty GetDataDelegate:get TableViewCellSelectionDelegate:selection AutoRefresh:NO];
+}
+-(id) initWithSuperView:(UIView *) superView TableViewCell:(NSString *) cell EmptyTableViewCell:(NSString *) empty GetDataDelegate:(id<LETableViewDataSourceDelegate>) get TableViewCellSelectionDelegate:(id<LETableViewCellSelectionDelegate>) selection TapEvent:(BOOL) tap{
+    self=[self initWithSuperView:superView TableViewCell:cell EmptyTableViewCell:empty GetDataDelegate:get TableViewCellSelectionDelegate:selection AutoRefresh:NO];
+    self.leDisableTapEvent=!tap;
+    return self;
+}
+-(id) initWithSuperView:(UIView *) superView TableViewCell:(NSString *) cell EmptyTableViewCell:(NSString *) empty GetDataDelegate:(id<LETableViewDataSourceDelegate>) get TableViewCellSelectionDelegate:(id<LETableViewCellSelectionDelegate>) selection AutoRefresh:(BOOL) autorefresh{
+    return [self initWithSuperViewContainer:superView ParentView:superView TableViewCell:cell EmptyTableViewCell:empty GetDataDelegate:get TableViewCellSelectionDelegate:selection AutoRefresh:NO];
+}
+
 -(id) initWithSuperViewContainer:(UIView *) superView ParentView:(UIView *) parent GetDataDelegate:(id<LETableViewDataSourceDelegate>) get   TableViewCellSelectionDelegate:(id<LETableViewCellSelectionDelegate>) selection{
     return [self initWithSuperViewContainer:superView ParentView:parent TableViewCell:nil EmptyTableViewCell:nil GetDataDelegate:get TableViewCellSelectionDelegate:selection];
 }
 -(id) initWithSuperViewContainer:(UIView *) superView ParentView:(UIView *) parent TableViewCell:(NSString *) cell EmptyTableViewCell:(NSString *) empty GetDataDelegate:(id<LETableViewDataSourceDelegate>) get   TableViewCellSelectionDelegate:(id<LETableViewCellSelectionDelegate>) selection{
     return [self initWithSuperViewContainer:superView ParentView:parent TableViewCell:cell EmptyTableViewCell:empty GetDataDelegate:get TableViewCellSelectionDelegate:selection AutoRefresh:NO];
 }
--(id) initWithSuperViewContainer:(UIView *) superView ParentView:(UIView *) parent TableViewCell:(NSString *) cell EmptyTableViewCell:(NSString *) empty GetDataDelegate:(id<LETableViewDataSourceDelegate>) get   TableViewCellSelectionDelegate:(id<LETableViewCellSelectionDelegate>) selection AutoRefresh:(BOOL) autorefresh{
+-(id) initWithSuperViewContainer:(UIView *) superView ParentView:(UIView *) parent TableViewCell:(NSString *) cell EmptyTableViewCell:(NSString *) empty GetDataDelegate:(id<LETableViewDataSourceDelegate>) get   TableViewCellSelectionDelegate:(id<LETableViewCellSelectionDelegate>) selection TapEvent:(BOOL) tap{
+    self=[self initWithSuperViewContainer:superView ParentView:parent TableViewCell:cell EmptyTableViewCell:empty GetDataDelegate:get TableViewCellSelectionDelegate:selection AutoRefresh:NO];
+    self.leDisableTapEvent=!tap;
+    return self;
+}
+-(id) initWithSuperViewContainer:(UIView *) superView ParentView:(UIView *) parent TableViewCell:(NSString *) cell EmptyTableViewCell:(NSString *) empty GetDataDelegate:(id<LETableViewDataSourceDelegate>) get TableViewCellSelectionDelegate:(id<LETableViewCellSelectionDelegate>) selection AutoRefresh:(BOOL) autorefresh{
     self=[super init];
     self.leSuperViewContainer=superView;
     self.leParentView=parent;
@@ -88,11 +109,13 @@
 @end
 @implementation LEBaseTableView{
     BOOL ignoredFirstEmptyCell;
+    BOOL isDisbaleTap;
 }
 -(void) leSetEmptyTableViewCell:(LEBaseEmptyTableViewCell *) emptyTableViewCell{
     self.leEmptyTableViewCell=emptyTableViewCell;
 }
 - (id) initWithSettings:(LETableViewSettings *) settings{
+    isDisbaleTap=settings.leDisableTapEvent;
     self.leEmptyTableViewCellClassName=settings.leEmptyTableViewCellClassName?settings.leEmptyTableViewCellClassName:@"LEBaseEmptyTableViewCell";
     self.leTableViewCellClassName=settings.leTableViewCellClassName;
     UIView *superView=settings.leSuperViewContainer;
@@ -130,7 +153,7 @@
     [self reloadData];
 }
 -(void) leOnStopBottomRefresh {
-    [self reloadData];
+    //    [self reloadData];
 }
 //
 -(void) onDelegateRefreshData{
@@ -165,7 +188,14 @@
         if(!self.leItemsArray){
             self.leItemsArray=[[NSMutableArray alloc] init];
         }
+        NSInteger loc=self.leItemsArray.count;
         [self.leItemsArray addObjectsFromArray:data];
+        NSMutableArray *insertIndexPaths = [NSMutableArray arrayWithCapacity:data.count];
+        for (int ind = 0; ind < [data count]; ind++) {
+            NSIndexPath *newPath =  [NSIndexPath indexPathForRow:loc+ind inSection:[self leNumberOfSections]>1?[self leNumberOfSections]-1:0];
+            [insertIndexPaths addObject:newPath];
+        }
+        [self insertRowsAtIndexPaths:insertIndexPaths withRowAnimation:UITableViewRowAnimationFade];
     }
     [self leOnStopBottomRefresh];
 }
@@ -187,7 +217,7 @@
         UITableViewCell *cell=[self dequeueReusableCellWithIdentifier:LEReuseableCellIdentifier];
         if(!cell){
             LESuppressPerformSelectorLeakWarning(
-                                                 cell=[[self.leTableViewCellClassName leGetInstanceFromClassName] performSelector:NSSelectorFromString(@"initWithSettings:") withObject:[[LETableViewCellSettings alloc] initWithSelectionDelegate:self.leCellSelectionDelegate]];
+                                                 cell=[[self.leTableViewCellClassName leGetInstanceFromClassName] performSelector:NSSelectorFromString(@"initWithSettings:") withObject:[[LETableViewCellSettings alloc] initWithSelectionDelegate:self.leCellSelectionDelegate EnableGesture:!isDisbaleTap]];
                                                  );
         }
         if(self.leItemsArray&&indexPath.row<self.leItemsArray.count){
