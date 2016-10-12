@@ -41,51 +41,51 @@ static LEResumeBrokenDownloadManager *_instance;
 @end
 
 @interface LEResumeBrokenDownload ()
+@property (nonatomic) id<LEResumeBrokenDownloadDelegate> curDelegate;
 @property (nonatomic) LEResumeBrokenDownloadState curDownloadState;
+@property (nonatomic) NSString *curIdentifier;
 @end
 @implementation LEResumeBrokenDownload{
-    NSString *curIdentifier;
-    id<LEResumeBrokenDownloadDelegate> curDelegate;
-    NSString *curDownloadedFilePath;
     //
     AFURLSessionManager *sessionManager;
     AFNetworkReachabilityManager *reachabilityManager;
+    NSFileManager *fileManager;
     
     NSURLRequest *downloadRequest;
     NSURLSessionDownloadTask *downloadTask;
-    NSString *curFilePath;
+    NSString *curDownloadedFilePath;
     NSString *curURL;
-    NSFileManager *fileManager;
 }
 -(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier{
     self=[super init];
     fileManager = [NSFileManager defaultManager];
-    curDelegate=delegate;
-    curIdentifier=identifier;
+    self.curDelegate=delegate;
+    self.curIdentifier=identifier;
     curDownloadedFilePath=[LEResumeBrokenDownloadManager sharedInstance].downloadedFilePath;
     reachabilityManager=[AFNetworkReachabilityManager sharedManager];
+    __weak typeof(self) weakSelf = self;
     [reachabilityManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status){
         if(status==AFNetworkReachabilityStatusReachableViaWWAN){
-            if(self.curDownloadState==LEResumeBrokenDownloadStateDownloading){
+            if(weakSelf.curDownloadState==LEResumeBrokenDownloadStateDownloading){
                 if([LEResumeBrokenDownloadManager sharedInstance].allowNetworkReachViaWWAN){
                     if([LEResumeBrokenDownloadManager sharedInstance].pauseDownloadWhenSwitchedToWWAN){
-                        [self lePauseDownload];
-                        if(curDelegate&&[curDelegate respondsToSelector:@selector(leOnAlertWhenSwitchedToWWANWithIdentifier:)]){
-                            [curDelegate leOnAlertWhenSwitchedToWWANWithIdentifier:curIdentifier];
+                        [weakSelf lePauseDownload];
+                        if(weakSelf.curDelegate&&[weakSelf.curDelegate respondsToSelector:@selector(leOnAlertWhenSwitchedToWWANWithIdentifier:)]){
+                            [weakSelf.curDelegate leOnAlertWhenSwitchedToWWANWithIdentifier:weakSelf.curIdentifier];
                         }
                     }
                 }
             }
         }else if(status==AFNetworkReachabilityStatusReachableViaWiFi){
-            if(self.curDownloadState==LEResumeBrokenDownloadStateWaiting||self.curDownloadState==LEResumeBrokenDownloadStatePaused){
-                [self leResumeDownload];
-            }else if(self.curDownloadState==LEResumeBrokenDownloadStateFailed){
-                [self lePauseDownload];
-                [self leResumeDownload];
+            if(weakSelf.curDownloadState==LEResumeBrokenDownloadStateWaiting||weakSelf.curDownloadState==LEResumeBrokenDownloadStatePaused){
+                [weakSelf leResumeDownload];
+            }else if(weakSelf.curDownloadState==LEResumeBrokenDownloadStateFailed){
+                [weakSelf lePauseDownload];
+                [weakSelf leResumeDownload];
             }
         }else {
-            if(self.curDownloadState==LEResumeBrokenDownloadStateDownloading){
-                [self lePauseDownload];
+            if(weakSelf.curDownloadState==LEResumeBrokenDownloadStateDownloading){
+                [weakSelf lePauseDownload];
             }
         }
     }];
@@ -98,8 +98,8 @@ static LEResumeBrokenDownloadManager *_instance;
 }
 -(void) setCurDownloadState:(LEResumeBrokenDownloadState)curDownloadState{
     _curDownloadState=curDownloadState;
-    if(curDelegate&&[curDelegate respondsToSelector:@selector(leOnDownloadStateChanged:)]){
-        [curDelegate leOnDownloadStateChanged:curDownloadState];
+    if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnDownloadStateChanged:)]){
+        [self.curDelegate leOnDownloadStateChanged:curDownloadState];
     }
 }
 -(LEResumeBrokenDownloadState) leCurrentDownloadState{
@@ -133,13 +133,13 @@ static LEResumeBrokenDownloadManager *_instance;
 }
 //
 -(void) leDownloadWithURL:(NSString *) url{
-    curURL=url;
-    NSURL *nsurl =[NSURL URLWithString:url];
-//    nsurl=[NSURL URLWithString:@"http://120.25.226.186:32812/resources/videos/minion_01.mp4"];
-    downloadRequest = [NSURLRequest requestWithURL:nsurl];
-    self.curDownloadState=LEResumeBrokenDownloadStateWaiting;
-    if(reachabilityManager.isReachableViaWiFi||([LEResumeBrokenDownloadManager sharedInstance].allowNetworkReachViaWWAN&&reachabilityManager.isReachableViaWWAN)){
-        [self leResumeDownload];
+    if(url&&url.length>0){
+        curURL=url;
+        downloadRequest = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
+        self.curDownloadState=LEResumeBrokenDownloadStateWaiting;
+        if(reachabilityManager.isReachableViaWiFi||([LEResumeBrokenDownloadManager sharedInstance].allowNetworkReachViaWWAN&&reachabilityManager.isReachableViaWWAN)){
+            [self leResumeDownload];
+        }
     }
 }
 -(void) lePauseDownload{
@@ -186,8 +186,8 @@ static LEResumeBrokenDownloadManager *_instance;
 }
 -(void) onDownloadProgressChanged:(NSProgress *) downloadProgress{
     dispatch_async(dispatch_get_main_queue(), ^{
-        if(curDelegate&&[curDelegate respondsToSelector:@selector(leDownloadProgress:Identifier:)]){
-            [curDelegate leDownloadProgress:1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount Identifier:curIdentifier];
+        if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leDownloadProgress:Identifier:)]){
+            [self.curDelegate leDownloadProgress:1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount Identifier:self.curIdentifier];
         }
     });
 }
@@ -195,8 +195,8 @@ static LEResumeBrokenDownloadManager *_instance;
     return curURL?[curDownloadedFilePath stringByAppendingPathComponent:curURL.lastPathComponent]:nil;
 }
 -(void) onDownloadCompleteWithPath:(NSString *) filePath Error:(NSError *) error{
-    if(curDelegate&&[curDelegate respondsToSelector:@selector(leOnDownloadCompletedWithPath:Error:Identifier:)]){
-        [curDelegate leOnDownloadCompletedWithPath:filePath Error:error Identifier:curIdentifier];
+    if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnDownloadCompletedWithPath:Error:Identifier:)]){
+        [self.curDelegate leOnDownloadCompletedWithPath:filePath Error:error Identifier:self.curIdentifier];
     }
     if(error){
         self.curDownloadState=LEResumeBrokenDownloadStateFailed;
