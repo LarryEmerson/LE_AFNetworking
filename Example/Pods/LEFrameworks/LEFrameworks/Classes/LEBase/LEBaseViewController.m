@@ -19,6 +19,16 @@
 @implementation LEBaseView{
     UIView *curSuperView; 
 }
+-(void) leReleaseView{
+    [self.recognizerRight removeTarget:self action:@selector(swipGesture:)];
+    self.recognizerRight=nil;
+    self.leCurrentViewController=nil;
+    [self.leViewBelowCustomizedNavigation removeFromSuperview];
+    [self.leViewContainer removeFromSuperview];
+    self.leViewContainer=nil;
+    self.leViewBelowCustomizedNavigation=nil;
+    [self removeFromSuperview];
+} 
 -(id) initWithViewController:(LEBaseViewController *) vc{
     curSuperView=vc.view;
     self.leCurrentViewController=vc;
@@ -55,7 +65,7 @@
 }
 -(void) leSwipGestureLogic{
     [self.leCurrentViewController.navigationController popViewControllerAnimated:YES];
-}
+} 
 @end
 @interface LEBaseViewController ()
 @property (nonatomic, readwrite) id<LEViewControllerPopDelegate> lePopDelegate;
@@ -77,8 +87,7 @@
     class=[class stringByAppendingString:@"Page"];
     NSObject *obj=[NSClassFromString(class) alloc];
     if(obj&&([obj isKindOfClass:[LEBaseView class]]||[obj isMemberOfClass:[LEBaseView class]])){
-        LEBaseView *view= [(LEBaseView *) obj initWithViewController:self];
-        [view setUserInteractionEnabled:YES];
+        [[(LEBaseView *) obj initWithViewController:self] setUserInteractionEnabled:YES];
     }
 }
 @end
@@ -102,7 +111,7 @@
     self=[super initWithAutoLayoutSettings:[[LEAutoLayoutSettings alloc] initWithSuperView:superview Anchor:LEAnchorInsideTopCenter Offset:CGPointMake(0, offset) CGSize:CGSizeMake(LESCREEN_WIDTH, LENavigationBarHeight)]];
     curViewController=viewController;
     curDelegate=delegate;
-    background=[UIImageView new].leSuperView(self).leAnchor(LEAnchorInsideBottomCenter).leSize(CGSizeMake(LESCREEN_WIDTH, LENavigationBarHeight+offset)).leAutoLayout.leType;
+    background=[UIImageView new].leSuperView(self).leAnchor(LEAnchorInsideBottomCenter).leSize(CGSizeMake(LESCREEN_WIDTH, LENavigationBarHeight+offset)).leBackground([LEUIFramework sharedInstance].leColorNavigationBar).leAutoLayout.leType;
     [background setImage:bg];
     //
     leBackButton=[UIButton new].leSuperView(self).leAnchor(LEAnchorInsideLeftCenter).leAutoLayout.leType;

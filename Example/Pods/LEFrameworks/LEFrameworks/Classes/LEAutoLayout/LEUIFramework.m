@@ -36,6 +36,7 @@
     return [NSString stringWithFormat:@"%@",self];
 }
 -(void) leExtraInits{}
+-(void) leRelease{}
 @end
 
 @implementation UIView (LEExtension) 
@@ -44,7 +45,7 @@
 }
 -(void) leAddLocalNotification:(NSString *) notification{
     if(notification&&notification.length>0){
-        LELocalNotification *noti=[[LELocalNotification alloc] init];
+        LELocalNotification *noti=[LELocalNotification new];
         [noti leSetText:notification WithEnterTime:0.3 AndPauseTime:0.8 ReleaseWhenFinished:YES];
         [[UIApplication sharedApplication].keyWindow addSubview:noti];
     }
@@ -75,7 +76,7 @@
     UIImageView *img= [LEUIFramework leGetImageViewWithSettings:[[LEAutoLayoutSettings alloc] initWithSuperView:self Anchor:LEAnchorInsideBottomCenter Offset:offset CGSize:CGSizeMake(width, 0.5)] Image:[color leImageStrechedFromSizeOne]];
     return img;
 }
-
+-(void) leReleaseView{}
 @end
 
 @implementation UITableView (LEExtension)
@@ -93,7 +94,9 @@
 @implementation UIColor (LEExtension)
 -(UIImage *)leImageStrechedFromSizeOne{
     UIImage *img=[self leImageWithSize:CGSizeMake(1, 1)];
-    return [img leMiddleStrechedImage];
+    UIImage *streched= [img leMiddleStrechedImage];
+    img=nil;
+    return streched;
 }
 -(UIImage *)leImageWithSize:(CGSize)size {
     CGRect rect = CGRectMake(0, 0, size.width, size.height);
@@ -759,7 +762,7 @@ LESingleton_implementation(LEUIFramework)
 }
 -(void) leExtraInits{
     self.leNavigationButtonFontsize=LELayoutFontSize16;
-    self.leImageNavigationBar=[LEColorWhite leImageStrechedFromSizeOne];
+    self.leImageNavigationBar=[LEColorClear leImageStrechedFromSizeOne];
     self.leColorNavigationBar=LEColorWhite;
     self.leColorNavigationContent=LEColorBlack;
     self.leColorViewContainer=[UIColor colorWithRed:0.9647 green:0.9647 blue:0.9686 alpha:1.0];
@@ -794,7 +797,8 @@ LESingleton_implementation(LEUIFramework)
     return [NSString stringWithFormat:@"%d",i];
 }
 +(NSString *) leNumberToString:(NSNumber *) num{
-    return [NSString stringWithFormat:@"%@",num];
+//    return [NSString stringWithFormat:@"%@",num];
+    return [[[NSNumberFormatter alloc] init] stringFromNumber:num];
 }
 +(UIFont *) leGetSystemFontWithSize:(int)size{
     return [UIFont systemFontOfSize:size];
@@ -824,7 +828,9 @@ LESingleton_implementation(LEUIFramework)
     return CGSizeMake(size.width/2, size.height/2);
 }
 + (UIImage *) leGetUIImage:(NSString *) name{
-    return [UIImage imageNamed:name];
+    UIImage *img= [UIImage imageNamed:name];
+    name=nil;
+    return img;
 }
 + (UIImage *) leGetUIImage:(NSString *) name Streched:(BOOL) isStreched {
     UIImage *img=[LEUIFramework leGetUIImage:name];

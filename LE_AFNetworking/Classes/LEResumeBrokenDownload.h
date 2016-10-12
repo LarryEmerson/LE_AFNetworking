@@ -17,15 +17,18 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
     LEResumeBrokenDownloadStateCompleted,      /** download completed */
     LEResumeBrokenDownloadStateFailed          /** download failed */
 };
+#define LEDownloadSuffix @".download"
 
 #define LEAllowNetworkReachViaWWAN @"LEAllowNetworkReachViaWWAN"
 #define LEPauseDownloadWhenSwitchedToWWAN @"LEPauseDownloadWhenSwitchedToWWAN"
 
 #pragma mark Protocol
 @protocol LEResumeBrokenDownloadDelegate <NSObject>
+-(void) leOnDownloadCompletedWithPath:(NSString *) filePath Error:(NSError *) error Identifier:(NSString *) identifier;
+@optional
 -(void) leDownloadProgress:(float) progress Identifier:(NSString *) identifier;
--(void) leOnDownloadCompletedWithResponse:(NSURLResponse *) response Path:(NSURL *) filePath Error:(NSError *) error Identifier:(NSString *) identifier;
--(void) leOnAlertWhenSwitchedToWWANWithIdentifier:(NSString *) identifier; 
+-(void) leOnAlertWhenSwitchedToWWANWithIdentifier:(NSString *) identifier;
+-(void) leOnDownloadStateChanged:(LEResumeBrokenDownloadState) state;
 @end
 #pragma mark Download Manager
 @interface LEResumeBrokenDownloadManager : NSObject
@@ -41,6 +44,8 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
 -(void) leDownloadWithURL:(NSString *) url;
 -(void) lePauseDownload;
 -(void) leResumeDownload;
+-(LEResumeBrokenDownloadState) leCurrentDownloadState;
+-(NSString *) leDownloadedFilePath;
 //
 -(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier URL:(NSString *) url;
 @end

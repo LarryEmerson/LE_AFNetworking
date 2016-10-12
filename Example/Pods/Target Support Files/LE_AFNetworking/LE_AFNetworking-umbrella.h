@@ -1,5 +1,6 @@
 #import <UIKit/UIKit.h>
 
+#import "LEResumeBrokenDownload.h"
 #import "LE_AFNetworking.h"
 #import "LE_AFNetworkings.h"
 #import "LE_DataManager.h"

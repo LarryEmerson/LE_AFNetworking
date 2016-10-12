@@ -38,10 +38,14 @@
 @implementation DM_Test_Messages @end
 @implementation DM_Test @end
 
-@interface ViewController ()<LE_AFNetworkingDelegate,LENavigationDelegate>
+
+//#define DownloadTest @"http://120.25.226.186:32812/resources/videos/minion_01.mp4"
+//#define DownloadTest @"http://occqxazgx.bkt.clouddn.com/lsldOaaukGErLH7nb1Of1PFu9VjE"
+#define DownloadTest @"http://files.git.oschina.net/group1/M00/00/7B/PaAvDFf8q9-AcIKkAXxIN9d8yJg332.pdf"
+@interface ViewController ()<LE_AFNetworkingDelegate,LENavigationDelegate,LEResumeBrokenDownloadDelegate>
 @end
 @implementation ViewController{
-
+    LEResumeBrokenDownload *curDownloader;
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -53,10 +57,70 @@
     LEBaseNavigation *navi=[[LEBaseNavigation alloc] initWithDelegate:self ViewController:self SuperView:view Offset:LEStatusBarHeight BackgroundImage:[LEColorWhite leImageStrechedFromSizeOne] TitleColor:LEColorTextBlack LeftItemImage:nil];
     [navi leSetNavigationTitle:@"LE_AFNetworking"];
     [navi leSetRightNavigationItemWith:@"测试" Image:nil];
+    NSString *documentsDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+    NSString *dataPath = [documentsDirectory stringByAppendingPathComponent:@"pdfspath"];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
+        [[NSFileManager defaultManager] createDirectoryAtPath:dataPath withIntermediateDirectories:NO attributes:nil error:nil];
+    }
+    [[LEResumeBrokenDownloadManager sharedInstance] setDownloadedFilePath:dataPath];
 }
 -(void) leNavigationRightButtonTapped{
-    [self onTestLE_AFNetworking];
+//    [self onTestLE_AFNetworking];
+    
+    if(!curDownloader){
+        curDownloader=[[LEResumeBrokenDownload alloc] initWithDelegate:self Identifier:nil URL:DownloadTest];
+    }else{
+        switch (curDownloader.leCurrentDownloadState) {
+            case LEResumeBrokenDownloadStateDownloading:
+                [curDownloader lePauseDownload];
+                break;
+            case LEResumeBrokenDownloadStateCompleted:
+                LELogObject(@"open")
+                break;
+            case LEResumeBrokenDownloadStateNone:
+            case LEResumeBrokenDownloadStateWaiting:
+            case LEResumeBrokenDownloadStatePaused:
+            case LEResumeBrokenDownloadStateFailed:
+                [curDownloader leResumeDownload];
+                break;
+            default:
+                break;
+        }
+    }
+    
 }
+//===========================测试 LEResumeBrokenDownload
+-(void) leOnDownloadCompletedWithPath:(NSString *)filePath Error:(NSError *)error Identifier:(NSString *)identifier{
+    LELogObject(filePath)
+}
+-(void) leOnDownloadStateChanged:(LEResumeBrokenDownloadState)state{
+    LELog(@"LEResumeBrokenDownloadState %zd",state)
+}
+-(void) leDownloadProgress:(float)progress Identifier:(NSString *)identifier{
+    LELog(@"progress %f",progress)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //===========================测试 LE_AFNetworking
 -(void) onTestLE_AFNetworking{
     [[LE_AFNetworking sharedInstance] leRequestWithApi:@"http://git.oschina.net/larryemerson/ybs/raw/master/README.md" uri:@"" httpHead:nil requestType:LERequestTypeGet parameter:nil delegate:self];

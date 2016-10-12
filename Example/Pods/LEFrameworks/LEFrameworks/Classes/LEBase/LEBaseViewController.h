@@ -12,23 +12,22 @@
 @protocol LEViewControllerPopDelegate <NSObject>
 -(void) leOnViewControllerPopedWithPageName:(NSString *) order AndData:(id) data;
 @end
-@interface LEBaseViewController : UIViewController
+@interface LEBaseViewController : UIViewController 
 @property (nonatomic, readonly) id<LEViewControllerPopDelegate> lePopDelegate;
-//@property (nonatomic) UIViewController *superViewController;
--(id) initWithDelegate:(id<LEViewControllerPopDelegate>) delegate;
+-(id) initWithDelegate:(id<LEViewControllerPopDelegate>) delegate; 
 @end
 @interface LEBaseView : UIView
-@property (nonatomic, readonly) UISwipeGestureRecognizer *leRecognizerRight;
 @property (nonatomic, readonly) int leCurrentFrameWidth;
 @property (nonatomic, readonly) int leCurrentFrameHight;
+@property (nonatomic, readonly) int leFrameHightForCustomizedView;
 @property (nonatomic, readonly) UIView *leViewContainer;
 @property (nonatomic, readonly) UIView *leViewBelowCustomizedNavigation;
-@property (nonatomic, readonly) int leFrameHightForCustomizedView;
-@property (nonatomic, readonly) LEBaseViewController *leCurrentViewController;
+@property (nonatomic, readonly) UISwipeGestureRecognizer *leRecognizerRight;
+@property (nonatomic, weak, readonly) LEBaseViewController *leCurrentViewController;
 -(UIView *) leSuperViewContainer;
 -(id) initWithViewController:(LEBaseViewController *) vc;
 -(void) leSwipGestureLogic;
--(void) leOnSetRightSwipGesture:(BOOL) gesture;
+-(void) leOnSetRightSwipGesture:(BOOL) gesture; 
 @end
 
 @protocol LENavigationDelegate <NSObject>
