@@ -79,6 +79,7 @@ typedef NS_ENUM(NSInteger, LERequestType) {
 #define LEKeyOfResponseAsJSON       @"LEKeyOfResponseAsJSON"
 #define LEStatusCode200             200
 #define LEIntToString(num)          [NSString stringWithFormat:@"%d", num]
+#define LEIntegerToString(num)      [NSString stringWithFormat:@"%zd", num]
 #define LEFloatToString(num)          [NSString stringWithFormat:@"%f", num]
 #define LENumberToString(num)       [NSString stringWithFormat:@"%@", num]
 
@@ -111,7 +112,7 @@ typedef NS_ENUM(NSInteger, LERequestType) {
 @property (nonatomic, readonly) int               leDuration;
 @property (nonatomic, readonly) NSString          *leIdentification;//用于给请求加标签
 @property (nonatomic, readonly) int               leCreateTimestamp;
-@property (nonatomic, readonly) NSMutableArray    *leCurDelegateArray;
+@property (nonatomic) NSMutableArray    *leCurDelegateArray;
 //
 @property (nonatomic) id                leExtraObj;
 //
@@ -155,10 +156,14 @@ typedef NS_ENUM(NSInteger, LERequestType) {
 - (void)         leSetMD5Salt:(NSString *) salt;
 - (void)         leSetMessageDelegate:(id<LEAppMessageDelegate>) delegate;
 - (void)         leOnShowAppMessageWith:(NSString *) message;
+- (void)         leSetContentType:(NSSet *) type;
+- (void)         leSetStatusCode:(NSIndexSet *) status;
 //GET
 - (BOOL)         leEnableDebug;
 - (BOOL)         leEnableResponseDebug;
 - (BOOL)         leEnableResponseWithJsonString;
+- (NSIndexSet *) leStatusCode;
+- (NSSet *)      leContentType;
 - (NSString *)   leMd5Salt;
 - (NSString *)   leGetServerHost;
 
@@ -175,6 +180,7 @@ typedef NS_ENUM(NSInteger, LERequestType) {
 - (void)            leSave:(NSString *) value WithKey:(NSString *) key;
 - (NSString *)      leGetValueWithKey:(NSString *) key;
 + (NSString *)      leMd5:(NSString *) str;
+- (void)            leRemoveDelegate:(id) delegate;
 - (void)            leRemoveDelegateWithKey:(NSString *) key Value:(id) value;
 + (int)             leGetTimeStamp ;
 + (NSString *)      leJSONStringWithObject:(NSObject *) obj;

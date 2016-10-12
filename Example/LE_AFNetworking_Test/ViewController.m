@@ -38,15 +38,23 @@
 @implementation DM_Test_Messages @end
 @implementation DM_Test @end
 
-@interface ViewController ()<LE_AFNetworkingDelegate>
+@interface ViewController ()<LE_AFNetworkingDelegate,LENavigationDelegate>
 @end
-@implementation ViewController
+@implementation ViewController{
+
+}
 - (void)viewDidLoad {
     [super viewDidLoad];
     //    [self onTestDataModel];
     [[LE_AFNetworking sharedInstance] leSetEnableDebug:YES];
     [[LE_AFNetworking sharedInstance] leSetEnableResponseDebug:YES];
     [[LE_AFNetworking sharedInstance] leSetEnableResponseWithJsonString:YES];
+    LEBaseView *view=[[LEBaseView alloc] initWithViewController:self];
+    LEBaseNavigation *navi=[[LEBaseNavigation alloc] initWithDelegate:self ViewController:self SuperView:view Offset:LEStatusBarHeight BackgroundImage:[LEColorWhite leImageStrechedFromSizeOne] TitleColor:LEColorTextBlack LeftItemImage:nil];
+    [navi leSetNavigationTitle:@"LE_AFNetworking"];
+    [navi leSetRightNavigationItemWith:@"测试" Image:nil];
+}
+-(void) leNavigationRightButtonTapped{
     [self onTestLE_AFNetworking];
 }
 //===========================测试 LE_AFNetworking

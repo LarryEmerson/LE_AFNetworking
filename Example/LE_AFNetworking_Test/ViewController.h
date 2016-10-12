@@ -7,8 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-
-@interface ViewController : UIViewController
+#import <LEFrameworks/LEFrameworks.h>
+@interface ViewController : LEBaseViewController
 
 
 @end

@@ -68,6 +68,7 @@
 
 + (Class)classExistProperty:(NSString *)property withObject:(NSObject *)object{
     Class  class = [NSNull class];
+    BOOL found=NO;
     unsigned int  propertyCount = 0;
     Ivar *vars = class_copyIvarList([object class], &propertyCount);
     for (NSInteger i = 0; i < propertyCount; i++) {
@@ -82,9 +83,14 @@
                 type = [type stringByReplacingOccurrencesOfString:@"@" withString:@""];
                 type = [type stringByReplacingOccurrencesOfString:@"\"" withString:@""];
                 class = NSClassFromString(type);
-                return class;
+                found=YES;
+                break;
             }
         }
+    }
+    free(vars);
+    if(found){
+        return class;
     }
     propertyCount=0;
     vars = class_copyIvarList(class_getSuperclass([object class]), &propertyCount);
@@ -100,10 +106,12 @@
                 type = [type stringByReplacingOccurrencesOfString:@"@" withString:@""];
                 type = [type stringByReplacingOccurrencesOfString:@"\"" withString:@""];
                 class = NSClassFromString(type);
-                return class;
+                found=YES;
+                break;
             }
         }
     }
+    free(vars);
     return class;
 }
 + (id)handleDataModelEngine:(id)object withClass:(Class) class{
@@ -131,6 +139,9 @@
                             if([subObject isKindOfClass:[NSNull class]]){
                                 [modelObject setValue:@(0) forKey:key];
                             }else{
+                                if([subObject isKindOfClass:[NSString class]]){
+                                    subObject=[[NSNumberFormatter new] numberFromString:subObject];
+                                }
                                 [modelObject setValue:subObject forKey:key];
                             }
                         }else if(propertyExistence == [NSDictionary class] || propertyExistence == [NSMutableDictionary class]){
@@ -150,7 +161,7 @@
                                 [modelObject setValue:subModelObject forKey:key];
                             }
                         }else if(propertyExistence == [NSNull class]){
-                            NSLog(@"<<<<<%@ 缺少字段%@>>>>>",class,key);
+                            //                            NSLog(@"<<<<<%@ 缺少字段%@>>>>>",class,key);
                         }else if(subObject && ![subObject isKindOfClass:[NSNull class]]){
                             id subModelObject = [self handleDataModelEngine:subObject withClass:propertyExistence];
                             [modelObject setValue:subModelObject forKey:key];

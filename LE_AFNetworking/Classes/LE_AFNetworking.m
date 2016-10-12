@@ -62,8 +62,7 @@
 @property (nonatomic, readwrite) BOOL              leUseCache;
 @property (nonatomic, readwrite) int               leDuration;
 @property (nonatomic, readwrite) NSString          *leIdentification;//用于给请求加标签
-@property (nonatomic, readwrite) int               leCreateTimestamp;
-@property (nonatomic, readwrite) NSMutableArray    *leCurDelegateArray;
+@property (nonatomic, readwrite) int               leCreateTimestamp; 
 @end
 @implementation LE_AFNetworkingSettings
 -(void) leSetRequestCount:(int) requestCount{
@@ -155,6 +154,7 @@
 
 @implementation LE_AFNetworkingRequestObject{
     NSDictionary *responseObjectCache;
+    AFHTTPSessionManager *manager;
 }
 - (id) initWithSettings:(LE_AFNetworkingSettings *) settings{
     if([LE_AFNetworking sharedInstance].leEnableDebug){
@@ -164,34 +164,43 @@
         LELog(@"Type=%@",settings.leGetRequestType);
         LELog(@"Param=%@",settings.leParameter);
     }
-    self.leAfnetworkingSettings=settings;
     self=[super init];
+    self.leAfnetworkingSettings=settings;
     return self;
+}
+-(void) dealloc{ 
+    [self.leAfnetworkingSettings.leCurDelegateArray removeAllObjects];
+    self.leAfnetworkingSettings=nil;
+    responseObjectCache=nil;
+    manager=nil;
 }
 - (void) leExecRequest:(BOOL) requestOrNot{
     if(!requestOrNot){
         return;
     }
     LE_AFNetworkingSettings *settings=self.leAfnetworkingSettings;
-    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager = [AFHTTPSessionManager manager];
     manager.responseSerializer = [AFHTTPResponseSerializer serializer];
     //
-    [manager.responseSerializer setAcceptableStatusCodes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 400)]];
-    [manager.responseSerializer setAcceptableContentTypes:[[NSSet alloc] initWithObjects:@"text/javascript",@"application/json",@"text/json",@"text/html",@"text/plain", nil]];
+    [manager.responseSerializer setAcceptableStatusCodes:[[LE_AFNetworking sharedInstance] leStatusCode]];
+    [manager.responseSerializer setAcceptableContentTypes:[[LE_AFNetworking sharedInstance] leContentType]];
     if(settings.leHttpHead&&settings.leHttpHead.count>0){//HTTPHEAD
         manager.requestSerializer=[AFJSONRequestSerializer serializer];
         for (NSString *key in settings.leHttpHead.allKeys) {
             [manager.requestSerializer setValue:[settings.leHttpHead objectForKey:key] forHTTPHeaderField:key];
         }
     }
+    
+    LE_AFNetworkingRequestObject *weakSelf=self;
+    //    __weak typeof(self) weakSelf = self;
     switch (settings.leRequestType) {
         case 0://Get
         {
             [manager GET:settings.leGetURL parameters:settings.leParameter progress:^(NSProgress * _Nonnull downloadProgress) {
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                [self onRespondedWithRequest:task responseObject:responseObject];
+                [weakSelf onRespondedWithRequest:task responseObject:responseObject];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                [self onRespondedWithRequest:task responseObject:nil error:error];
+                [weakSelf onRespondedWithRequest:task responseObject:nil error:error];
             }];
         }
             break;
@@ -200,36 +209,36 @@
             [manager POST:settings.leGetURL parameters:settings.leParameter progress:^(NSProgress * _Nonnull downloadProgress){
                 
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                [self onRespondedWithRequest:task responseObject:responseObject];
+                [weakSelf onRespondedWithRequest:task responseObject:responseObject];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                [self onRespondedWithRequest:task responseObject:nil error:error];
+                [weakSelf onRespondedWithRequest:task responseObject:nil error:error];
             }];
         }
             break;
         case 2://Head
         {
             [manager HEAD:settings.leGetURL parameters:settings.leParameter success:^(NSURLSessionDataTask * _Nonnull task) {
-                [self onRespondedWithRequest:task responseObject:task];
+                [weakSelf onRespondedWithRequest:task responseObject:task];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                [self onRespondedWithRequest:task responseObject:nil error:error];
+                [weakSelf onRespondedWithRequest:task responseObject:nil error:error];
             }];
         }
             break;
         case 3://Put
         {
             [manager PUT:settings.leGetURL parameters:settings.leParameter success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                [self onRespondedWithRequest:task responseObject:responseObject];
+                [weakSelf onRespondedWithRequest:task responseObject:responseObject];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                [self onRespondedWithRequest:task responseObject:nil error:error];
+                [weakSelf onRespondedWithRequest:task responseObject:nil error:error];
             }];
         }
             break;
         case 4://Patch
         {
             [manager PATCH:settings.leGetURL parameters:settings.leParameter success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                [self onRespondedWithRequest:task responseObject:responseObject];
+                [weakSelf onRespondedWithRequest:task responseObject:responseObject];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                [self onRespondedWithRequest:task responseObject:nil error:error];
+                [weakSelf onRespondedWithRequest:task responseObject:nil error:error];
             }];
             
         }
@@ -237,9 +246,9 @@
         case 5://Delete
         {
             [manager DELETE:settings.leGetURL parameters:settings.leParameter success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject){
-                [self onRespondedWithRequest:task responseObject:responseObject];
+                [weakSelf onRespondedWithRequest:task responseObject:responseObject];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error)  {
-                [self onRespondedWithRequest:task responseObject:nil error:error];
+                [weakSelf onRespondedWithRequest:task responseObject:nil error:error];
             }];
         }
             break;
@@ -249,6 +258,7 @@
 }
 - (void) onRespondedWithRequest:(NSURLSessionDataTask *) operation responseObject:(id) responseObject {
     [self onRespondedWithRequest:operation responseObject:responseObject error:nil];
+    [manager invalidateSessionCancelingTasks:YES];
 }
 - (void) onRespondedWithRequest:(NSURLSessionDataTask *) operation responseObject:(id) responseObject error:(NSError *) error {
     if(error||!responseObject){
@@ -407,9 +417,36 @@
 @property (nonatomic) BOOL enableResponseWithJsonString;
 @property (nonatomic) NSString *md5Salt;
 @property (nonatomic) id<LEAppMessageDelegate> messageDelegate;
+@property (nonatomic) NSSet *contentType;
+@property (nonatomic) NSIndexSet *statusCode;
 @end
 @implementation LE_AFNetworking{
     NSMutableDictionary *afnetworkingCache;
+}
+-(void) leSetStatusCode:(NSIndexSet *) status{
+    self.statusCode=status;
+}
+-(NSIndexSet *) leStatusCode{
+    return self.statusCode;
+}
+-(NSIndexSet *) statusCode{
+    if(_statusCode==nil){
+        _statusCode=[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 400)];
+    }
+    return _statusCode;
+}
+
+-(void) leSetContentType:(NSSet *) type{
+    self.contentType=type;
+}
+-(NSSet *) leContentType{
+    return self.contentType;
+}
+-(NSSet *) contentType{
+    if(_contentType==nil){
+        _contentType=[[NSSet alloc] initWithObjects:@"text/javascript",@"application/json",@"text/json",@"text/html",@"text/plain", nil];
+    }
+    return _contentType;
 }
 -(BOOL) leEnableDebug{
     return self.enableDebug;
@@ -518,7 +555,9 @@ static int networkCounter;
         }else {
             requestObject=[[LE_AFNetworkingRequestObject alloc] initWithSettings:settings];
             [requestObject leExecRequest:autoRequest];
+            LE_AFNetworkingRequestObject *ori=[afnetworkingCache objectForKey:requestObject.leAfnetworkingSettings.leGetKey];
             [afnetworkingCache setObject:requestObject forKey:requestObject.leAfnetworkingSettings.leGetKey];
+            ori=nil;
             return requestObject;
         }
     }else{
@@ -527,20 +566,28 @@ static int networkCounter;
         return requestObject;
     }
 }
+-(void) leRemoveDelegate:(id) delegate{
+    for (LE_AFNetworkingRequestObject *requestObject in afnetworkingCache.allValues) {
+        if(requestObject&&requestObject.leAfnetworkingSettings){
+            for (NSInteger i=requestObject.leAfnetworkingSettings.leCurDelegateArray.count-1; i>=0; i--) {
+                id<LE_AFNetworkingDelegate> delegate=[requestObject.leAfnetworkingSettings.leCurDelegateArray objectAtIndex:i];
+                if([delegate isEqual:delegate]){
+                    [requestObject.leAfnetworkingSettings.leCurDelegateArray removeObjectAtIndex:i];
+                }
+            }
+        }
+    }
+}
 -(void) leRemoveDelegateWithKey:(NSString *) key Value:(id) value{
     LE_AFNetworkingRequestObject *requestObject=[afnetworkingCache objectForKey:key];
     if(requestObject){
         if(requestObject&&requestObject.leAfnetworkingSettings){
-            NSMutableArray *list=[[NSMutableArray alloc] init];
-            for(int i=0;i<requestObject.leAfnetworkingSettings.leCurDelegateArray.count;++i){
+            for (NSInteger i=requestObject.leAfnetworkingSettings.leCurDelegateArray.count-1; i>=0; i--) {
                 id<LE_AFNetworkingDelegate> delegate=[requestObject.leAfnetworkingSettings.leCurDelegateArray objectAtIndex:i];
-                if([delegate isEqual:value]){
+                if([delegate isEqual:delegate]){
                     [requestObject.leAfnetworkingSettings.leCurDelegateArray removeObjectAtIndex:i];
-                }else if(delegate){
-                    [list addObject:delegate];
                 }
             }
-            [requestObject.leAfnetworkingSettings leSetDelegateArray:list];
         }
     }
 } 
@@ -579,59 +626,54 @@ static int networkCounter;
     return [[NSDate date] timeIntervalSince1970];
 }
 +(NSString*) JSONStringWithDictionary:(NSDictionary *) dic {
-    NSString *jsonString=@"";
+    NSMutableString *jsonString=[[NSMutableString alloc] initWithString:@""];
     NSString *value=nil;
     for (NSString *key in dic.allKeys) {
         if(value){
-            if(!jsonString){
-                jsonString=@"";
-            }
             if(jsonString.length>0){
-                jsonString=[jsonString stringByAppendingString:@","];
+                [jsonString appendString:@","];
             }
         }
         id obj=[dic objectForKey:key];
         if([obj isKindOfClass:[NSDictionary class]]){
             value=[LE_AFNetworking JSONStringWithDictionary:obj];
-            jsonString=[NSString stringWithFormat:@"%@ \"%@\":%@",jsonString, key, value];
+            [jsonString appendFormat:@" \"%@\":%@", key, value];
         }else if([obj isKindOfClass:[NSArray class]]){
             value=[LE_AFNetworking JSONStringWithArray:obj];
-            jsonString=[NSString stringWithFormat:@"%@ \"%@\":%@",jsonString, key, value];
+            [jsonString appendFormat:@" \"%@\":%@", key, value];
         }else {
             value=[NSString stringWithFormat:@"%@",obj];
             value=[value stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""];
             value=[value stringByReplacingOccurrencesOfString:@"\r\n" withString:@"\n"];
             value=[value stringByReplacingOccurrencesOfString:@"\t" withString:@""];
             value=[value stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-            jsonString=[NSString stringWithFormat:@"%@ \"%@\":\"%@\"",jsonString, key, value];
+            [jsonString appendFormat:@" \"%@\":\"%@\"", key, value];
         }
     }
-    jsonString=[NSString stringWithFormat:@"{%@}",jsonString];
+    [jsonString insertString:@"{" atIndex:0];
+    [jsonString appendString:@"}"];
     return jsonString;
 }
 +(NSString*) JSONStringWithArray:(NSArray *) array {
-    NSString *jsonString=@"";
+    NSMutableString *jsonString=[[NSMutableString alloc] initWithString:@""];
     for (int i=0; i<array.count; i++) {
         id obj=[array objectAtIndex:i];
         if([obj isKindOfClass:[NSDictionary class]]||[obj isKindOfClass:[NSMutableDictionary class]]){
-            if(!jsonString){
-                jsonString=[(NSDictionary *)obj leObjToJSONString];
+            if(jsonString.length>0){
+                [jsonString appendFormat:@",%@",[(NSDictionary *)obj leObjToJSONString]];
             }else{
-                if(jsonString.length>0){
-                    jsonString=[NSString stringWithFormat:@"%@,%@",jsonString,[(NSDictionary *)obj leObjToJSONString]];
-                }else{
-                    jsonString=[(NSDictionary *)obj leObjToJSONString];
-                }
+                [jsonString appendString:[(NSDictionary *)obj leObjToJSONString]];
             }
         }else {
             if(jsonString.length>0){
-                jsonString=[NSString stringWithFormat:@"%@,\"%@\"",jsonString,obj];
+                [jsonString appendFormat:@",\"%@\"",obj];
             }else {
-                jsonString=[NSString stringWithFormat:@"\"%@\"",obj];
+                [jsonString appendFormat:@"\"%@\"",obj];
             }
         }
     }
-    jsonString=[NSString stringWithFormat:@"[%@]",jsonString];
+    [jsonString insertString:@"[" atIndex:0];
+    [jsonString appendString:@"]"];
     return jsonString;
 }
 + (NSString *) leJSONStringWithObject:(id) obj{
