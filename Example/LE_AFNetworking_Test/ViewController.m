@@ -45,7 +45,12 @@
 @interface ViewController ()<LE_AFNetworkingDelegate,LENavigationDelegate,LEResumeBrokenDownloadDelegate>
 @end
 @implementation ViewController{
+    LEBaseView *view;
+    //
     LEResumeBrokenDownload *curDownloader;
+    UISwitch *switchWWAN;
+    UISwitch *switchPause;
+    
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -53,24 +58,52 @@
     [[LE_AFNetworking sharedInstance] leSetEnableDebug:YES];
     [[LE_AFNetworking sharedInstance] leSetEnableResponseDebug:YES];
     [[LE_AFNetworking sharedInstance] leSetEnableResponseWithJsonString:YES];
-    LEBaseView *view=[[LEBaseView alloc] initWithViewController:self];
+    view=[[LEBaseView alloc] initWithViewController:self];
     LEBaseNavigation *navi=[[LEBaseNavigation alloc] initWithDelegate:self ViewController:self SuperView:view Offset:LEStatusBarHeight BackgroundImage:[LEColorWhite leImageStrechedFromSizeOne] TitleColor:LEColorTextBlack LeftItemImage:nil];
     [navi leSetNavigationTitle:@"LE_AFNetworking"];
     [navi leSetRightNavigationItemWith:@"测试" Image:nil];
+}
+
+-(void) leNavigationRightButtonTapped{
+//    [self onTestLE_AFNetworking];
+    [self onTestResumeBrokenDownload];
+}
+//===========================测试 LEResumeBrokenDownload
+-(void) onTestResumeBrokenDownloadInits{
     NSString *documentsDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
     NSString *dataPath = [documentsDirectory stringByAppendingPathComponent:@"pdfspath"];
     if (![[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
         [[NSFileManager defaultManager] createDirectoryAtPath:dataPath withIntermediateDirectories:NO attributes:nil error:nil];
     }
     [[LEResumeBrokenDownloadManager sharedInstance] setDownloadedFilePath:dataPath];
-}
--(void) leNavigationRightButtonTapped{
-//    [self onTestLE_AFNetworking];
+    //
+    switchWWAN=[UISwitch new];
+    switchPause=[UISwitch new];
+    [view.leViewBelowCustomizedNavigation addSubview:switchWWAN];
+    [view.leViewBelowCustomizedNavigation addSubview:switchPause];
     
+    [switchWWAN setFrame:CGRectMake(0, 0, switchWWAN.bounds.size.width, switchWWAN.bounds.size.height)];
+    [switchPause setFrame:CGRectMake(switchWWAN.bounds.size.width, 0, switchPause.bounds.size.width, switchPause.bounds.size.height)];
+    //
+    [switchWWAN addTarget:self action:@selector(onDownloadSwitch:) forControlEvents:UIControlEventTouchUpInside];
+    [LEResumeBrokenDownloadManager sharedInstance].allowNetworkReachViaWWAN=switchWWAN.on;
+    [LEResumeBrokenDownloadManager sharedInstance].pauseDownloadWhenSwitchedToWWAN=switchPause.on;
+    LELog(@"WWAN:%@ , Pause:%@",switchWWAN.on?@"ON":@"OFF",switchPause.on?@"ON":@"OFF")
+}
+-(void) onDownloadSwitch:(UISwitch *) swi{
+    if([swi isEqual:switchWWAN]){
+        [LEResumeBrokenDownloadManager sharedInstance].allowNetworkReachViaWWAN=swi.on;
+    }else if([swi isEqual:switchPause]){
+        [LEResumeBrokenDownloadManager sharedInstance].pauseDownloadWhenSwitchedToWWAN=swi.on;
+    }
+    LELog(@"WWAN:%@ , Pause:%@",switchWWAN.on?@"ON":@"OFF",switchPause.on?@"ON":@"OFF")
+}
+-(void) onTestResumeBrokenDownload{
     if(!curDownloader){
+        [self onTestResumeBrokenDownloadInits];
         curDownloader=[[LEResumeBrokenDownload alloc] initWithDelegate:self Identifier:nil URL:DownloadTest];
     }else{
-        switch (curDownloader.leCurrentDownloadState) {
+        switch (curDownloader.curDownloadState) {
             case LEResumeBrokenDownloadStateDownloading:
                 [curDownloader lePauseDownload];
                 break;
@@ -80,6 +113,7 @@
             case LEResumeBrokenDownloadStateNone:
             case LEResumeBrokenDownloadStateWaiting:
             case LEResumeBrokenDownloadStatePaused:
+            case LEResumeBrokenDownloadStatePausedManually:
             case LEResumeBrokenDownloadStateFailed:
                 [curDownloader leResumeDownload];
                 break;
@@ -87,19 +121,22 @@
                 break;
         }
     }
-    
 }
-//===========================测试 LEResumeBrokenDownload
 -(void) leOnDownloadCompletedWithPath:(NSString *)filePath Error:(NSError *)error Identifier:(NSString *)identifier{
     LELogObject(filePath)
 }
--(void) leOnDownloadStateChanged:(LEResumeBrokenDownloadState)state{
+-(void) leOnDownloadStateChanged:(LEResumeBrokenDownloadState)state Identifier:(NSString *)identifier{
     LELog(@"LEResumeBrokenDownloadState %zd",state)
 }
 -(void) leDownloadProgress:(float)progress Identifier:(NSString *)identifier{
-    LELog(@"progress %f",progress)
+//    LELog(@"progress %f",progress)
 }
-
+-(void) leOnAlertForUnreachableNetworkWithIdentifier:(NSString *)identifier{
+    LELogFunc
+}
+-(void) leOnAlertWhenSwitchedToWWANWithIdentifier:(NSString *)identifier{
+    LELogFunc
+}
 
 
 

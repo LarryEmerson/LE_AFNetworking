@@ -17,7 +17,7 @@ PODS:
   - FMDB (2.6.2):
     - FMDB/standard (= 2.6.2)
   - FMDB/standard (2.6.2)
-  - LE_AFNetworking (0.2.8):
+  - LE_AFNetworking (0.3.0):
     - AFNetworking (~> 3)
     - FMDB
     - LEFrameworks
@@ -33,7 +33,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
   FMDB: 854a0341b4726e53276f2a8996f06f1b80f9259a
-  LE_AFNetworking: bc3948f60dec8a863a59f6a11ef8796aaeb53132
+  LE_AFNetworking: 538a1a87b1cb0367d3b956aa87b0f4fdde129122
   LEFrameworks: e85706dbb212c442e8d6796b211b541571e11487
 
 PODFILE CHECKSUM: ab42e96dc284e8fcbe1c0cd314cc3509536e4906

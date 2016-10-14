@@ -8,6 +8,11 @@
 
 #import "LEResumeBrokenDownload.h"
 
+@interface LEResumeBrokenDownloadManager ()
+@property (nonatomic,readwrite) AFURLSessionManager *sessionManager;
+@property (nonatomic,readwrite) NSURLSessionConfiguration *sessionConfiguration;
+@property (nonatomic,readwrite) NSFileManager *fileManager;
+@end
 @implementation LEResumeBrokenDownloadManager
 static LEResumeBrokenDownloadManager *_instance;
 + (instancetype)allocWithZone:(struct _NSZone *)zone{
@@ -23,15 +28,24 @@ static LEResumeBrokenDownloadManager *_instance;
         _instance = [[self alloc] init];
         _instance.allowNetworkReachViaWWAN=YES;
         _instance.pauseDownloadWhenSwitchedToWWAN=YES;
+        _instance.fileManager= [NSFileManager defaultManager];
         _instance.downloadedFilePath=[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
+        _instance.sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
+        _instance.sessionManager = [[AFURLSessionManager alloc] initWithSessionConfiguration:_instance.sessionConfiguration];
+        [_instance.sessionManager.reachabilityManager startMonitoring];
     });
     return _instance;
 }
 - (id)copyWithZone:(NSZone *)zone{
     return _instance;
 }
+-(void) releaseManager{
+    [_instance.sessionManager.reachabilityManager stopMonitoring];
+    _instance.sessionManager=nil;
+}
 -(void) setAllowNetworkReachViaWWAN:(BOOL)allowNetworkReachViaWWAN{
     _allowNetworkReachViaWWAN=allowNetworkReachViaWWAN;
+    _instance.sessionConfiguration.allowsCellularAccess=allowNetworkReachViaWWAN;//TODO 这里的设置是否能直接影响设备的蜂窝网络连接需经过测试，如果可行则不需要额外的代码处理蜂窝网络的控制
     [[NSNotificationCenter defaultCenter] postNotificationName:LEAllowNetworkReachViaWWAN object:nil userInfo:@{LEAllowNetworkReachViaWWAN:[NSNumber numberWithBool:allowNetworkReachViaWWAN]}];
 }
 -(void) setPauseDownloadWhenSwitchedToWWAN:(BOOL)pauseDownloadWhenSwitchedToWWAN{
@@ -42,173 +56,216 @@ static LEResumeBrokenDownloadManager *_instance;
 
 @interface LEResumeBrokenDownload ()
 @property (nonatomic) id<LEResumeBrokenDownloadDelegate> curDelegate;
-@property (nonatomic) LEResumeBrokenDownloadState curDownloadState;
-@property (nonatomic) NSString *curIdentifier;
+@property (nonatomic, readwrite) LEResumeBrokenDownloadState curDownloadState;
+@property (nonatomic, readwrite) NSString *curIdentifier;
 @end
 @implementation LEResumeBrokenDownload{
-    //
-    AFURLSessionManager *sessionManager;
-    AFNetworkReachabilityManager *reachabilityManager;
-    NSFileManager *fileManager;
-    
-    NSURLRequest *downloadRequest;
     NSURLSessionDownloadTask *downloadTask;
     NSString *curDownloadedFilePath;
     NSString *curURL;
 }
--(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier{
-    self=[super init];
-    fileManager = [NSFileManager defaultManager];
-    self.curDelegate=delegate;
-    self.curIdentifier=identifier;
-    curDownloadedFilePath=[LEResumeBrokenDownloadManager sharedInstance].downloadedFilePath;
-    reachabilityManager=[AFNetworkReachabilityManager sharedManager];
-    __weak typeof(self) weakSelf = self;
-    [reachabilityManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status){
-        if(status==AFNetworkReachabilityStatusReachableViaWWAN){
-            if(weakSelf.curDownloadState==LEResumeBrokenDownloadStateDownloading){
-                if([LEResumeBrokenDownloadManager sharedInstance].allowNetworkReachViaWWAN){
-                    if([LEResumeBrokenDownloadManager sharedInstance].pauseDownloadWhenSwitchedToWWAN){
-                        [weakSelf lePauseDownload];
-                        if(weakSelf.curDelegate&&[weakSelf.curDelegate respondsToSelector:@selector(leOnAlertWhenSwitchedToWWANWithIdentifier:)]){
-                            [weakSelf.curDelegate leOnAlertWhenSwitchedToWWANWithIdentifier:weakSelf.curIdentifier];
-                        }
-                    }
-                }
-            }
-        }else if(status==AFNetworkReachabilityStatusReachableViaWiFi){
-            if(weakSelf.curDownloadState==LEResumeBrokenDownloadStateWaiting||weakSelf.curDownloadState==LEResumeBrokenDownloadStatePaused){
-                [weakSelf leResumeDownload];
-            }else if(weakSelf.curDownloadState==LEResumeBrokenDownloadStateFailed){
-                [weakSelf lePauseDownload];
-                [weakSelf leResumeDownload];
-            }
-        }else {
-            if(weakSelf.curDownloadState==LEResumeBrokenDownloadStateDownloading){
-                [weakSelf lePauseDownload];
-            }
-        }
-    }];
-    [reachabilityManager startMonitoring];
-    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
-    sessionManager = [[AFURLSessionManager alloc] initWithSessionConfiguration:configuration];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notificationFromLEResumeBrokenDownloadManager:) name:LEAllowNetworkReachViaWWAN object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notificationFromLEResumeBrokenDownloadManager:) name:LEPauseDownloadWhenSwitchedToWWAN object:nil];
-    return self;
-}
--(void) setCurDownloadState:(LEResumeBrokenDownloadState)curDownloadState{
-    _curDownloadState=curDownloadState;
-    if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnDownloadStateChanged:)]){
-        [self.curDelegate leOnDownloadStateChanged:curDownloadState];
+-(NSString *) leDownloadedFilePath{
+    if(!curURL||curURL.length==0){
+        return nil;
     }
-}
--(LEResumeBrokenDownloadState) leCurrentDownloadState{
-    return self.curDownloadState;
-}
--(void) dealloc{
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:LEAllowNetworkReachViaWWAN object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:LEPauseDownloadWhenSwitchedToWWAN object:nil];
-}
--(void) notificationFromLEResumeBrokenDownloadManager:(NSNotification *) noti{
-    if(noti.userInfo){
-        NSDictionary *userinfo=noti.userInfo;
-        if([userinfo objectForKey:LEAllowNetworkReachViaWWAN]){
-            BOOL enable=[[userinfo objectForKey:LEAllowNetworkReachViaWWAN] boolValue];
-            if(!enable&&self.curDownloadState==LEResumeBrokenDownloadStateDownloading&&reachabilityManager.networkReachabilityStatus==AFNetworkReachabilityStatusReachableViaWWAN){
-                [self lePauseDownload];
-            }else if(self.curDownloadState==LEResumeBrokenDownloadStatePaused&&reachabilityManager.isReachableViaWWAN){
-                [self leResumeDownload];
-            }
-        }
-        if([userinfo objectForKey:LEPauseDownloadWhenSwitchedToWWAN]){
-            BOOL enable=[[userinfo objectForKey:LEPauseDownloadWhenSwitchedToWWAN] boolValue];
-            if(enable&&self.curDownloadState==LEResumeBrokenDownloadStateDownloading&&reachabilityManager.networkReachabilityStatus==AFNetworkReachabilityStatusReachableViaWWAN){
-                [self lePauseDownload];
-            }
-        }
+    NSString *path=[[NSUserDefaults standardUserDefaults] objectForKey:[curURL stringByAppendingString:LEDownloadSuggestedFilename]];
+    if(path&&path.length>0){
+        return [curDownloadedFilePath stringByAppendingPathComponent:path];
     }
+    return [curDownloadedFilePath stringByAppendingPathComponent:curURL.lastPathComponent];
 }
 -(void) leSetDownloadedFilePath:(NSString *) path{
     curDownloadedFilePath=path;
 }
-//
--(void) leDownloadWithURL:(NSString *) url{
-    if(url&&url.length>0){
-        curURL=url;
-        downloadRequest = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
-        self.curDownloadState=LEResumeBrokenDownloadStateWaiting;
-        if(reachabilityManager.isReachableViaWiFi||([LEResumeBrokenDownloadManager sharedInstance].allowNetworkReachViaWWAN&&reachabilityManager.isReachableViaWWAN)){
-            [self leResumeDownload];
-        }
+-(void) setCurDownloadState:(LEResumeBrokenDownloadState)curDownloadState{
+    _curDownloadState=curDownloadState;
+    if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnDownloadStateChanged:Identifier:)]){
+        [self.curDelegate leOnDownloadStateChanged:curDownloadState Identifier:self.curIdentifier];
     }
-}
--(void) lePauseDownload{
-    if(self.curDownloadState==LEResumeBrokenDownloadStateDownloading){
-        [downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
-            self.curDownloadState=LEResumeBrokenDownloadStatePaused;
-            [resumeData writeToFile:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix] atomically:YES];
-        }];
-    }
-}
--(void) leResumeDownload{
-    if(self.curDownloadState==LEResumeBrokenDownloadStateDownloading){
-        return;
-    }
-    [reachabilityManager startMonitoring];//enabled when last download was failed
-    NSData *resumeData=[[NSData alloc] initWithContentsOfFile:[self leDownloadedFilePath]];
-    if(resumeData){
-        [self onDownloadCompleteWithPath:[self leDownloadedFilePath] Error:nil];
-        return;
-    }
-    resumeData=[[NSData alloc] initWithContentsOfFile:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix]];
-    self.curDownloadState=LEResumeBrokenDownloadStateDownloading;
-    if(resumeData&&resumeData.length>0){
-        if ([fileManager fileExistsAtPath:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix]]) {
-            [fileManager removeItemAtPath:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix] error:nil];
-        }
-        downloadTask = [sessionManager downloadTaskWithResumeData:resumeData progress:^(NSProgress * _Nonnull downloadProgress) {
-            [self onDownloadProgressChanged:downloadProgress];
-        } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
-            return [NSURL fileURLWithPath:[self leDownloadedFilePath]];
-        } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
-            [self onDownloadCompleteWithPath:[self leDownloadedFilePath] Error:error];
-        }];
-    }else{
-        downloadTask = [sessionManager downloadTaskWithRequest:downloadRequest progress:^(NSProgress * _Nonnull downloadProgress) {
-            [self onDownloadProgressChanged:downloadProgress];
-        } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
-            return [NSURL fileURLWithPath:[self leDownloadedFilePath]];
-        } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
-            [self onDownloadCompleteWithPath:[self leDownloadedFilePath] Error:error];
-        }];
-    }
-    [downloadTask resume];
-}
--(void) onDownloadProgressChanged:(NSProgress *) downloadProgress{
-    dispatch_async(dispatch_get_main_queue(), ^{
-        if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leDownloadProgress:Identifier:)]){
-            [self.curDelegate leDownloadProgress:1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount Identifier:self.curIdentifier];
-        }
-    });
-}
--(NSString *) leDownloadedFilePath{
-    return curURL?[curDownloadedFilePath stringByAppendingPathComponent:curURL.lastPathComponent]:nil;
-}
--(void) onDownloadCompleteWithPath:(NSString *) filePath Error:(NSError *) error{
-    if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnDownloadCompletedWithPath:Error:Identifier:)]){
-        [self.curDelegate leOnDownloadCompletedWithPath:filePath Error:error Identifier:self.curIdentifier];
-    }
-    if(error){
-        self.curDownloadState=LEResumeBrokenDownloadStateFailed;
-    }else{
-        self.curDownloadState=LEResumeBrokenDownloadStateCompleted;
-    }
-    [reachabilityManager stopMonitoring];
 }
 -(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier URL:(NSString *) url{
     self=[self initWithDelegate:delegate Identifier:identifier];
     [self leDownloadWithURL:url];
     [self leResumeDownload];
     return self;
+}
+-(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier{
+    self=[super init];
+    self.curDelegate=delegate;
+    self.curIdentifier=identifier;
+    curDownloadedFilePath=[LEResumeBrokenDownloadManager sharedInstance].downloadedFilePath;
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityStatusDidChange:) name:AFNetworkingReachabilityDidChangeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notificationFromLEResumeBrokenDownloadManager:) name:LEAllowNetworkReachViaWWAN object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notificationFromLEResumeBrokenDownloadManager:) name:LEPauseDownloadWhenSwitchedToWWAN object:nil];
+    return self;
+}
+-(void) dealloc{
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:LEAllowNetworkReachViaWWAN object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:LEPauseDownloadWhenSwitchedToWWAN object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AFNetworkingReachabilityDidChangeNotification object:nil];
+}
+-(void) reachabilityStatusDidChange:(NSNotification *) noti{
+    if(noti&&noti.userInfo){
+        NSDictionary *userinfo=noti.userInfo; 
+        int status=[[userinfo objectForKey:AFNetworkingReachabilityNotificationStatusItem] intValue];
+        if(status==AFNetworkReachabilityStatusReachableViaWWAN){
+            if(self.curDownloadState==LEResumeBrokenDownloadStateDownloading){
+                if([LEResumeBrokenDownloadManager sharedInstance].allowNetworkReachViaWWAN){
+                    if([LEResumeBrokenDownloadManager sharedInstance].pauseDownloadWhenSwitchedToWWAN){
+                        [self pauseDownloadWhenNetworkUnstable];
+                        if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnAlertWhenSwitchedToWWANWithIdentifier:)]){
+                            [self.curDelegate leOnAlertWhenSwitchedToWWANWithIdentifier:self.curIdentifier];
+                        }
+                    }
+                }else{
+                    [self pauseDownloadWhenNetworkUnstable];
+                    if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnAlertForUnreachableNetworkViaWWANWithIdentifier:)]){
+                        [self.curDelegate leOnAlertForUnreachableNetworkViaWWANWithIdentifier:self.curIdentifier];
+                    }
+                }
+            }
+        }else if(status==AFNetworkReachabilityStatusReachableViaWiFi){
+            if(self.curDownloadState==LEResumeBrokenDownloadStatePaused||self.curDownloadState==LEResumeBrokenDownloadStateFailed){
+                [self leResumeDownload];
+            } 
+        }else {
+            if(self.curDownloadState==LEResumeBrokenDownloadStateDownloading){
+                [self pauseDownloadWhenNetworkUnstable];
+                if(status==AFNetworkReachabilityStatusNotReachable){
+                    if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnAlertForUnreachableNetworkWithIdentifier:)]){
+                        [self.curDelegate leOnAlertForUnreachableNetworkWithIdentifier:self.curIdentifier];
+                    }
+                }
+            }
+        }
+    }
+}
+-(void) notificationFromLEResumeBrokenDownloadManager:(NSNotification *) noti{
+    if(noti.userInfo){
+        NSDictionary *userinfo=noti.userInfo;
+        if([userinfo objectForKey:LEAllowNetworkReachViaWWAN]){
+            BOOL enable=[[userinfo objectForKey:LEAllowNetworkReachViaWWAN] boolValue];
+            if(!enable&&self.curDownloadState==LEResumeBrokenDownloadStateDownloading&&[LEResumeBrokenDownloadManager sharedInstance].sessionManager.reachabilityManager.networkReachabilityStatus==AFNetworkReachabilityStatusReachableViaWWAN){
+                [self pauseDownloadWhenNetworkUnstable];
+            }else if(self.curDownloadState==LEResumeBrokenDownloadStatePaused&&[LEResumeBrokenDownloadManager sharedInstance].sessionManager.reachabilityManager.isReachableViaWWAN){
+                [self leResumeDownload];
+            }
+        }
+        if([userinfo objectForKey:LEPauseDownloadWhenSwitchedToWWAN]){
+            BOOL enable=[[userinfo objectForKey:LEPauseDownloadWhenSwitchedToWWAN] boolValue];
+            if(enable&&self.curDownloadState==LEResumeBrokenDownloadStateDownloading&&[LEResumeBrokenDownloadManager sharedInstance].sessionManager.reachabilityManager.networkReachabilityStatus==AFNetworkReachabilityStatusReachableViaWWAN){
+                [self pauseDownloadWhenNetworkUnstable];
+            }
+        }
+    }
+}
+-(void) leDownloadWithURL:(NSString *) url{
+    if(url&&url.length>0){
+        curURL=url;
+        self.curDownloadState=LEResumeBrokenDownloadStateWaiting;
+        if([[NSData alloc] initWithContentsOfFile:[self leDownloadedFilePath]]){
+            [self onDownloadCompleteWithPath:[self leDownloadedFilePath] Error:nil];
+        }else{
+            NSData *resumeData=[[NSData alloc] initWithContentsOfFile:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix]];
+            if(resumeData&&resumeData.length>0){
+                float progress =[[[NSUserDefaults standardUserDefaults] objectForKey:[curURL stringByAppendingString:LEDownloadProgressKey]] floatValue];
+                if(progress>0){
+                    [self onDownloadProgressChanged:progress];
+                }
+            }
+        }
+    }
+}
+-(void) lePauseDownload{
+    [self pauseDownloadManuallyOrAutomatic:YES];
+}
+-(void) pauseDownloadWhenNetworkUnstable{
+    [self pauseDownloadManuallyOrAutomatic:NO];
+}
+-(void) pauseDownloadManuallyOrAutomatic:(BOOL) manually{
+    if(self.curDownloadState==LEResumeBrokenDownloadStateDownloading){
+        self.curDownloadState=manually?LEResumeBrokenDownloadStatePausedManually:LEResumeBrokenDownloadStatePaused;
+        [downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
+            [resumeData writeToFile:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix] atomically:YES];
+            [[NSUserDefaults standardUserDefaults] setValue:[NSNumber numberWithFloat:1.0*downloadTask.countOfBytesReceived/downloadTask.countOfBytesExpectedToReceive] forKey:[curURL stringByAppendingString:LEDownloadProgressKey]];
+        }];
+    }
+}
+-(void) leResumeDownloadViaWWAN{
+    [self leResumeDownloadWithUniqueWWANAllowance:[LEResumeBrokenDownloadManager sharedInstance].sessionManager.reachabilityManager.isReachableViaWWAN];
+}
+-(void) leResumeDownload{
+    [self leResumeDownloadWithUniqueWWANAllowance:[LEResumeBrokenDownloadManager sharedInstance].allowNetworkReachViaWWAN&&[LEResumeBrokenDownloadManager sharedInstance].sessionManager.reachabilityManager.isReachableViaWWAN];
+}
+-(void) leResumeDownloadWithUniqueWWANAllowance:(BOOL) allow{
+    if(self.curDownloadState==LEResumeBrokenDownloadStateDownloading||self.curDownloadState==LEResumeBrokenDownloadStateCompleted){
+        return;
+    }
+    BOOL isWifi=[LEResumeBrokenDownloadManager sharedInstance].sessionManager.reachabilityManager.isReachableViaWiFi;
+    BOOL isWWAN=allow;
+    if(isWifi||isWWAN){
+        self.curDownloadState=LEResumeBrokenDownloadStateDownloading;
+        NSData *resumeData=[[NSData alloc] initWithContentsOfFile:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix]];
+        if(resumeData&&resumeData.length>0){
+            downloadTask = [[LEResumeBrokenDownloadManager sharedInstance].sessionManager downloadTaskWithResumeData:resumeData progress:^(NSProgress * _Nonnull downloadProgress) {
+                [self onDownloadProgressChanged:1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount];
+            } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
+                return [self getURLWithResponse:response];
+            } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
+                [self onDownloadCompleteWithPath:[self getURLWithResponse:response].path Error:error];
+            }];
+        }else{
+            downloadTask = [[LEResumeBrokenDownloadManager sharedInstance].sessionManager downloadTaskWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:curURL]] progress:^(NSProgress * _Nonnull downloadProgress) {
+                [self onDownloadProgressChanged:1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount];
+            } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
+                return [self getURLWithResponse:response];
+            } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
+                [self onDownloadCompleteWithPath:[self getURLWithResponse:response].path Error:error];
+            }];
+        }
+        [downloadTask resume];
+    }else{
+        if(!isWWAN&&[LEResumeBrokenDownloadManager sharedInstance].sessionManager.reachabilityManager.isReachableViaWWAN){
+            if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnAlertForUnreachableNetworkViaWWANWithIdentifier:)]){
+                [self.curDelegate leOnAlertForUnreachableNetworkViaWWANWithIdentifier:self.curIdentifier];
+            }
+        }else {
+            if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnAlertForUnreachableNetworkWithIdentifier:)]){
+                [self.curDelegate leOnAlertForUnreachableNetworkWithIdentifier:self.curIdentifier];
+            }
+        }
+    }
+}
+-(NSURL *) getURLWithResponse:(NSURLResponse *) response{
+    return [NSURL fileURLWithPath:[curDownloadedFilePath stringByAppendingPathComponent:response.suggestedFilename]];
+}
+-(void) onDownloadProgressChanged:(float) downloadProgress{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leDownloadProgress:Identifier:)]){
+            [self.curDelegate leDownloadProgress:downloadProgress Identifier:self.curIdentifier];
+        }
+    });
+}
+-(void) onDownloadCompleteWithPath:(NSString *) filePath Error:(NSError *) error{
+    if(error){
+        if(error.userInfo){
+            NSData *resumeData=[error.userInfo objectForKey:NSURLSessionDownloadTaskResumeData];
+            if(resumeData&&resumeData.length>0){
+                [resumeData writeToFile:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix] atomically:YES];
+            }
+        }
+        if(error.code!=NSURLErrorCancelled){
+            self.curDownloadState=LEResumeBrokenDownloadStateFailed;
+        }
+    }else{
+        self.curDownloadState=LEResumeBrokenDownloadStateCompleted;
+        [[LEResumeBrokenDownloadManager sharedInstance].fileManager removeItemAtPath:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix] error:nil];
+        [[NSUserDefaults standardUserDefaults] setValue:filePath.lastPathComponent forKey:[curURL stringByAppendingString:LEDownloadSuggestedFilename]];
+    }
+    if(self.curDownloadState!=LEResumeBrokenDownloadStatePaused&&self.curDownloadState!=LEResumeBrokenDownloadStatePausedManually){
+        if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnDownloadCompletedWithPath:Error:Identifier:)]){
+            [self.curDelegate leOnDownloadCompletedWithPath:filePath Error:error Identifier:self.curIdentifier];
+        }
+    }
 }
 @end
