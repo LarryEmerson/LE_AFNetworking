@@ -7,7 +7,7 @@
 //
 
 #import "LEResumeBrokenDownload.h"
-
+ 
 @interface LEResumeBrokenDownloadManager ()
 @property (nonatomic,readwrite) AFURLSessionManager *sessionManager;
 @property (nonatomic,readwrite) NSURLSessionConfiguration *sessionConfiguration;
@@ -58,29 +58,34 @@ static LEResumeBrokenDownloadManager *_instance;
 @property (nonatomic) id<LEResumeBrokenDownloadDelegate> curDelegate;
 @property (nonatomic, readwrite) LEResumeBrokenDownloadState curDownloadState;
 @property (nonatomic, readwrite) NSString *curIdentifier;
+@property (nonatomic) NSString *curURL;
 @end
 @implementation LEResumeBrokenDownload{
+    AFURLSessionManager *sessionManager;//不可以直接调用sessionManager.reachabilityManager，原因是自定义的sessionManager未启用reachabilityManager
     NSURLSessionDownloadTask *downloadTask;
     NSString *curDownloadedFilePath;
-    NSString *curURL;
+    int64_t lastCountOfBytesReceived;
+    int counter;
 }
 -(NSString *) leDownloadedFilePath{
-    if(!curURL||curURL.length==0){
+    if(!self.curURL||self.curURL.length==0){
         return nil;
     }
-    NSString *path=[[NSUserDefaults standardUserDefaults] objectForKey:[curURL stringByAppendingString:LEDownloadSuggestedFilename]];
+    NSString *path=[[NSUserDefaults standardUserDefaults] objectForKey:[self.curURL stringByAppendingString:LEDownloadSuggestedFilename]];
     if(path&&path.length>0){
         return [curDownloadedFilePath stringByAppendingPathComponent:path];
     }
-    return [curDownloadedFilePath stringByAppendingPathComponent:curURL.lastPathComponent];
+    return [curDownloadedFilePath stringByAppendingPathComponent:self.curURL.lastPathComponent];
 }
 -(void) leSetDownloadedFilePath:(NSString *) path{
     curDownloadedFilePath=path;
 }
 -(void) setCurDownloadState:(LEResumeBrokenDownloadState)curDownloadState{
     _curDownloadState=curDownloadState;
-    if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnDownloadStateChanged:Identifier:)]){
-        [self.curDelegate leOnDownloadStateChanged:curDownloadState Identifier:self.curIdentifier];
+    if(curDownloadState!=LEResumeBrokenDownloadStatePausedForPeriodicDataWriting){ 
+        if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnDownloadStateChanged:Identifier:)]){
+            [self.curDelegate leOnDownloadStateChanged:curDownloadState Identifier:self.curIdentifier];
+        }
     }
 }
 -(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier URL:(NSString *) url{
@@ -90,10 +95,19 @@ static LEResumeBrokenDownloadManager *_instance;
     return self;
 }
 -(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier{
+    return [self initWithDelegate:delegate Identifier:identifier SessionConfiguration:nil];
+}
+-(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier SessionConfiguration:(NSURLSessionConfiguration *) config{
     self=[super init];
     self.curDelegate=delegate;
     self.curIdentifier=identifier;
     curDownloadedFilePath=[LEResumeBrokenDownloadManager sharedInstance].downloadedFilePath;
+    self.bytesForPeriodicDataWriting=[LEResumeBrokenDownloadManager sharedInstance].bytesForPeriodicDataWriting;
+    if(config){
+        sessionManager=[[AFURLSessionManager alloc] initWithSessionConfiguration:config];
+    }else{
+        sessionManager=[LEResumeBrokenDownloadManager sharedInstance].sessionManager;
+    }
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityStatusDidChange:) name:AFNetworkingReachabilityDidChangeNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notificationFromLEResumeBrokenDownloadManager:) name:LEAllowNetworkReachViaWWAN object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notificationFromLEResumeBrokenDownloadManager:) name:LEPauseDownloadWhenSwitchedToWWAN object:nil];
@@ -125,7 +139,7 @@ static LEResumeBrokenDownloadManager *_instance;
                 }
             }
         }else if(status==AFNetworkReachabilityStatusReachableViaWiFi){
-            if(self.curDownloadState==LEResumeBrokenDownloadStatePaused||self.curDownloadState==LEResumeBrokenDownloadStateFailed){
+            if(self.curDownloadState==LEResumeBrokenDownloadStatePausedAutomatically||self.curDownloadState==LEResumeBrokenDownloadStateFailed){
                 [self leResumeDownload];
             } 
         }else {
@@ -147,7 +161,7 @@ static LEResumeBrokenDownloadManager *_instance;
             BOOL enable=[[userinfo objectForKey:LEAllowNetworkReachViaWWAN] boolValue];
             if(!enable&&self.curDownloadState==LEResumeBrokenDownloadStateDownloading&&[LEResumeBrokenDownloadManager sharedInstance].sessionManager.reachabilityManager.networkReachabilityStatus==AFNetworkReachabilityStatusReachableViaWWAN){
                 [self pauseDownloadWhenNetworkUnstable];
-            }else if(self.curDownloadState==LEResumeBrokenDownloadStatePaused&&[LEResumeBrokenDownloadManager sharedInstance].sessionManager.reachabilityManager.isReachableViaWWAN){
+            }else if(self.curDownloadState==LEResumeBrokenDownloadStatePausedAutomatically&&[LEResumeBrokenDownloadManager sharedInstance].sessionManager.reachabilityManager.isReachableViaWWAN){
                 [self leResumeDownload];
             }
         }
@@ -161,14 +175,14 @@ static LEResumeBrokenDownloadManager *_instance;
 }
 -(void) leDownloadWithURL:(NSString *) url{
     if(url&&url.length>0){
-        curURL=url;
+        self.curURL=url;
         self.curDownloadState=LEResumeBrokenDownloadStateWaiting;
         if([[NSData alloc] initWithContentsOfFile:[self leDownloadedFilePath]]){
             [self onDownloadCompleteWithPath:[self leDownloadedFilePath] Error:nil];
         }else{
             NSData *resumeData=[[NSData alloc] initWithContentsOfFile:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix]];
             if(resumeData&&resumeData.length>0){
-                float progress =[[[NSUserDefaults standardUserDefaults] objectForKey:[curURL stringByAppendingString:LEDownloadProgressKey]] floatValue];
+                float progress =[[[NSUserDefaults standardUserDefaults] objectForKey:[self.curURL stringByAppendingString:LEDownloadProgressKey]] floatValue];
                 if(progress>0){
                     [self onDownloadProgressChanged:progress];
                 }
@@ -184,10 +198,16 @@ static LEResumeBrokenDownloadManager *_instance;
 }
 -(void) pauseDownloadManuallyOrAutomatic:(BOOL) manually{
     if(self.curDownloadState==LEResumeBrokenDownloadStateDownloading){
-        self.curDownloadState=manually?LEResumeBrokenDownloadStatePausedManually:LEResumeBrokenDownloadStatePaused;
+        self.curDownloadState=manually?LEResumeBrokenDownloadStatePausedManually:LEResumeBrokenDownloadStatePausedAutomatically;
+        __weak typeof(self) weakSelf=self;
+//        LEResumeBrokenDownload *weakSelf=self;
         [downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
-            [resumeData writeToFile:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix] atomically:YES];
-            [[NSUserDefaults standardUserDefaults] setValue:[NSNumber numberWithFloat:1.0*downloadTask.countOfBytesReceived/downloadTask.countOfBytesExpectedToReceive] forKey:[curURL stringByAppendingString:LEDownloadProgressKey]];
+            [resumeData writeToFile:[[weakSelf leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix] atomically:YES];
+            NSLog(@"%@",[[NSString alloc] initWithData:resumeData encoding:NSUTF8StringEncoding]);
+            NSLog(@"%@",[[NSString alloc] initWithContentsOfFile:[[weakSelf leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix] encoding:NSUTF8StringEncoding error:nil]);
+            NSDictionary *dic=[[NSDictionary alloc] initWithContentsOfFile:[[weakSelf leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix]];
+            lastCountOfBytesReceived=[[dic objectForKey:@"NSURLSessionResumeBytesReceived"] longLongValue];
+            [[NSUserDefaults standardUserDefaults] setValue:[NSNumber numberWithFloat:1.0*downloadTask.countOfBytesReceived/downloadTask.countOfBytesExpectedToReceive] forKey:[weakSelf.curURL stringByAppendingString:LEDownloadProgressKey]];
         }];
     }
 }
@@ -204,23 +224,25 @@ static LEResumeBrokenDownloadManager *_instance;
     BOOL isWifi=[LEResumeBrokenDownloadManager sharedInstance].sessionManager.reachabilityManager.isReachableViaWiFi;
     BOOL isWWAN=allow;
     if(isWifi||isWWAN){
+        __weak typeof(self) weakSelf=self;
+//        LEResumeBrokenDownload *weakSelf=self;
         self.curDownloadState=LEResumeBrokenDownloadStateDownloading;
         NSData *resumeData=[[NSData alloc] initWithContentsOfFile:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix]];
         if(resumeData&&resumeData.length>0){
-            downloadTask = [[LEResumeBrokenDownloadManager sharedInstance].sessionManager downloadTaskWithResumeData:resumeData progress:^(NSProgress * _Nonnull downloadProgress) {
-                [self onDownloadProgressChanged:1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount];
+            downloadTask = [sessionManager downloadTaskWithResumeData:resumeData progress:^(NSProgress * _Nonnull downloadProgress) {
+                [weakSelf onDownloadProgress:downloadProgress];
             } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
-                return [self getURLWithResponse:response];
+                return [weakSelf getURLWithResponse:response];
             } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
-                [self onDownloadCompleteWithPath:[self getURLWithResponse:response].path Error:error];
+                [weakSelf onDownloadCompleteWithPath:[weakSelf getURLWithResponse:response].path Error:error];
             }];
         }else{
-            downloadTask = [[LEResumeBrokenDownloadManager sharedInstance].sessionManager downloadTaskWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:curURL]] progress:^(NSProgress * _Nonnull downloadProgress) {
-                [self onDownloadProgressChanged:1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount];
+            downloadTask = [sessionManager downloadTaskWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:self.curURL]] progress:^(NSProgress * _Nonnull downloadProgress) {
+                [weakSelf onDownloadProgress:downloadProgress];
             } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
-                return [self getURLWithResponse:response];
+                return [weakSelf getURLWithResponse:response];
             } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
-                [self onDownloadCompleteWithPath:[self getURLWithResponse:response].path Error:error];
+                [weakSelf onDownloadCompleteWithPath:[weakSelf getURLWithResponse:response].path Error:error];
             }];
         }
         [downloadTask resume];
@@ -239,6 +261,22 @@ static LEResumeBrokenDownloadManager *_instance;
 -(NSURL *) getURLWithResponse:(NSURLResponse *) response{
     return [NSURL fileURLWithPath:[curDownloadedFilePath stringByAppendingPathComponent:response.suggestedFilename]];
 }
+-(void) onDownloadProgress:(NSProgress * ) downloadProgress{
+    if(self.bytesForPeriodicDataWriting>0){
+        if(downloadProgress.completedUnitCount-lastCountOfBytesReceived>self.bytesForPeriodicDataWriting&&self.curDownloadState!=LEResumeBrokenDownloadStatePausedForPeriodicDataWriting){
+            __weak typeof(self) weakSelf=self;
+//            LEResumeBrokenDownload *weakSelf=self;
+            self.curDownloadState=LEResumeBrokenDownloadStatePausedForPeriodicDataWriting;
+            [downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
+                if(downloadTask.countOfBytesExpectedToReceive>0){
+                    [[NSUserDefaults standardUserDefaults] setValue:[NSNumber numberWithFloat:1.0*downloadTask.countOfBytesReceived/downloadTask.countOfBytesExpectedToReceive] forKey:[weakSelf.curURL stringByAppendingString:LEDownloadProgressKey]];
+                }
+                lastCountOfBytesReceived=downloadProgress.completedUnitCount;
+            }];
+        }
+    }
+    [self onDownloadProgressChanged:1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount];
+}
 -(void) onDownloadProgressChanged:(float) downloadProgress{
     dispatch_async(dispatch_get_main_queue(), ^{
         if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leDownloadProgress:Identifier:)]){
@@ -252,6 +290,9 @@ static LEResumeBrokenDownloadManager *_instance;
             NSData *resumeData=[error.userInfo objectForKey:NSURLSessionDownloadTaskResumeData];
             if(resumeData&&resumeData.length>0){
                 [resumeData writeToFile:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix] atomically:YES];
+                if(self.curDownloadState==LEResumeBrokenDownloadStatePausedForPeriodicDataWriting){
+                    [self leResumeDownload];
+                }
             }
         }
         if(error.code!=NSURLErrorCancelled){
@@ -260,9 +301,10 @@ static LEResumeBrokenDownloadManager *_instance;
     }else{
         self.curDownloadState=LEResumeBrokenDownloadStateCompleted;
         [[LEResumeBrokenDownloadManager sharedInstance].fileManager removeItemAtPath:[[self leDownloadedFilePath] stringByAppendingString:LEDownloadSuffix] error:nil];
-        [[NSUserDefaults standardUserDefaults] setValue:filePath.lastPathComponent forKey:[curURL stringByAppendingString:LEDownloadSuggestedFilename]];
+        [[NSUserDefaults standardUserDefaults] setValue:filePath.lastPathComponent forKey:[self.curURL stringByAppendingString:LEDownloadSuggestedFilename]];
+        downloadTask=nil;
     }
-    if(self.curDownloadState!=LEResumeBrokenDownloadStatePaused&&self.curDownloadState!=LEResumeBrokenDownloadStatePausedManually){
+    if(self.curDownloadState!=LEResumeBrokenDownloadStatePausedAutomatically&&self.curDownloadState!=LEResumeBrokenDownloadStatePausedManually&&self.curDownloadState!=LEResumeBrokenDownloadStatePausedForPeriodicDataWriting){
         if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leOnDownloadCompletedWithPath:Error:Identifier:)]){
             [self.curDelegate leOnDownloadCompletedWithPath:filePath Error:error Identifier:self.curIdentifier];
         }

@@ -1,28 +1,31 @@
 //
 //  LEResumeBrokenDownload.h
 //  https://github.com/LarryEmerson/LE_AFNetworking
-//  弱断点续传下载器：如果强行关闭应用，当前正在下载的任务进度是无法保存的，只会保留上次下载任务暂停时的进度。下载任务完成前的进度保存都需要通过暂停下载或者在界面关闭前暂停下载来实现。
-//  下载过程中，正在下载内容会产生容量占用，同时上次保存的下载任务进度文件也会产生容量占用，如果下载的任务比较大，会出现因为容量占用太大而造成无法下载或者无法保存已下载内容的情况。
-//  不支持后台下载。应用前台状态下，在任意界面中创建的下载任务，在没有被暂停的前提下，都会持续下载直至下载完成。
-//  可以全局设定下载器是否允许蜂窝网络，是否在切换到蜂窝网络时暂停所有下载
-//  可以强制某一个任务绕过蜂窝网络的禁止，执行下载的流程
-//  网络断开提醒、切换蜂窝网络提醒、蜂窝网络被禁用提醒，都是针对于某一个下载任务的。多个任务存在的情况下，需要处理好多个任务同时受到提醒时的兼容处理（比如网络断开提示窗只能出现一次，蜂窝网络被禁用提醒，只能当前活动界面做反馈）
-//  对url中无后缀的情况作了补救，代价是下载完的内容的读取，必须使用下载器中的leDownloadedFilePath来作为路径。原因是下载完成的文件都是带有后缀的，如果url中无后缀，跳过下载器的leDownloadedFilePath，而使用url在拼接路径，会因为无后缀而找不到已下载完成的文件
-//
+//  -弱断点续传下载器：如果强行关闭应用，当前正在下载的任务进度是无法保存的，只会保留上次下载任务暂停时的进度。下载任务完成前的进度保存都需要通过暂停下载或者在界面关闭前暂停下载来实现。
+//  -下载过程中，正在下载内容会产生容量占用，同时上次保存的下载任务进度文件也会产生容量占用，如果下载的任务比较大，会出现因为容量占用太大而造成无法下载或者无法保存已下载内容的情况。
+//  -应用前台状态下，在任意界面中创建的下载任务，在没有被暂停的前提下，都会持续下载直至下载完成。
+//  -如下支持后台下载，需要使用接口initWithDelegate:Identifier:SessionConfiguration:，自定义config实现后台下载。
+//  -可以全局设定下载器是否允许蜂窝网络，是否在切换到蜂窝网络时暂停所有下载
+//  -可以强制某一个任务绕过蜂窝网络的禁止，执行下载的流程
+//  -网络断开提醒、切换蜂窝网络提醒、蜂窝网络被禁用提醒，都是针对于某一个下载任务的。多个任务存在的情况下，需要处理好多个任务同时受到提醒时的兼容处理（比如网络断开提示窗只能出现一次，蜂窝网络被禁用提醒，只能当前活动界面做反馈）
+//  -对url中无后缀的情况作了补救，代价是下载完的内容的读取，必须使用下载器中的leDownloadedFilePath来作为路径。原因是下载完成的文件都是带有后缀的，如果url中无后缀，跳过下载器的leDownloadedFilePath，而使用url在拼接路径，会因为无后缀而找不到已下载完成的文件
+//  -可以设置下载任务是否执行断点进度保存及下载量达到多少后执行进度保存，单位字节。
 //  Created by emerson larry on 2016/10/11.
 //
 //
 
 #import <Foundation/Foundation.h>
+#import <SystemConfiguration/SystemConfiguration.h>
 #import "AFNetworking.h" 
 typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
-    LEResumeBrokenDownloadStateNone             =0,     /** default */
-    LEResumeBrokenDownloadStateWaiting          =1,     /** before start downloading **/
-    LEResumeBrokenDownloadStateDownloading      =2,     /** downloading */
-    LEResumeBrokenDownloadStatePaused           =3,     /** paused 自动暂停触发情况：网络断开、设置禁用蜂窝、设置了切换蜂窝自动暂停，监听到蜂窝开启且设置了禁用蜂窝或切换蜂窝自动暂停、下载失败*/
-    LEResumeBrokenDownloadStatePausedManually   =4,     /** paused manually 手动暂停*/
-    LEResumeBrokenDownloadStateCompleted        =5,     /** download completed */
-    LEResumeBrokenDownloadStateFailed           =6      /** download failed */
+    LEResumeBrokenDownloadStateNone =0,                     //0 default 初始状态
+    LEResumeBrokenDownloadStateWaiting,                     //1 before start downloading 下载等待
+    LEResumeBrokenDownloadStateDownloading,                 //2 downloading 下载中
+    LEResumeBrokenDownloadStatePausedManually,              //3 paused manually 手动暂停
+    LEResumeBrokenDownloadStatePausedAutomatically,         //4 paused 自动暂停触发情况：网络断开、设置禁用蜂窝、设置了切换蜂窝自动暂停，监听到蜂窝开启且设置了禁用蜂窝或切换蜂窝自动暂停、下载失败
+    LEResumeBrokenDownloadStateCompleted,                   //5 download 下载完成
+    LEResumeBrokenDownloadStateFailed,                      //6 download 下载失败
+    LEResumeBrokenDownloadStatePausedForPeriodicDataWriting //7 PausedForPeriodicDataWriting 此状态不会回调，无需在UI有所体现。触发条件是启动了自动断点进度保存后，下载量达到bytesForPeriodicDataWriting
 };
 #define LEDownloadSuffix @".ledn"
 #define LEDownloadProgressKey @"leprogress"
@@ -73,6 +76,10 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
  * @brief 设置下载文件的统一路径，无法影响已经创建的下载任务
  */
 @property (nonatomic) NSString *downloadedFilePath;//default NSCachesDirectory
+/*
+ * @brief 默认0，不启用断点进度保存。统一设置所有的下载任务是否执行断点进度保存及下载量达到多少后执行进度保存，单位字节（尽量设置比较大的值，避免频繁的写入）
+ */
+@property (nonatomic) int64_t bytesForPeriodicDataWriting;
 @property (nonatomic,readonly) AFURLSessionManager *sessionManager;
 @property (nonatomic,readonly) NSURLSessionConfiguration *sessionConfiguration;
 @property (nonatomic,readonly) NSFileManager *fileManager;
@@ -89,13 +96,19 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
  */
 @property (nonatomic, readonly) NSString *curIdentifier;
 /*
+ * @brief 默认为LEResumeBrokenDownloadManager.bytesForPeriodicDataWriting。可单独设置下载任务是否执行断点进度保存及下载量达到多少后执行进度保存，单位字节（尽量设置比较大的值，避免频繁的写入）
+ */
+@property (nonatomic) int64_t bytesForPeriodicDataWriting;
+/*
  * @brief 初始化
- * Step 1 : 初始化 initWithDelegate:Identifier:
+ * Step 1 : 初始化 initWithDelegate:Identifier: 或者initWithDelegate:Identifier:SessionConfiguration:(用于自定义，可实现后台下载)
  * Step 2 ：自定义路径 leSetDownloadedFilePath:
  * Step 3 ：设置URL leDownloadWithURL:
  * Step 4 ：开始下载 leResumeDownload
  */
 -(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier;
+
+-(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier SessionConfiguration:(NSURLSessionConfiguration *) config;
 /*
  * @brief 自定义下载路径，注意在设定URL之前有效，URL设定之后设定会造成已下载内容的丢失或其他问题
  */
@@ -106,7 +119,7 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
 -(void) leDownloadWithURL:(NSString *) url;
 /*
  * @brief 手动暂停下载，与自动暂停下载不同，对应于LEResumeBrokenDownloadStatePausedManually。
- * 自动暂停的详情，请移步LEResumeBrokenDownloadStatePaused
+ * 自动暂停的详情，请移步LEResumeBrokenDownloadStatePausedAutomatically
  */
 -(void) lePauseDownload;
 /*

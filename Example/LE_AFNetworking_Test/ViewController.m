@@ -8,7 +8,6 @@
 
 #import "ViewController.h"
 #import "LE_AFNetworkings.h"
-
 //数据模型的类可以使用工具JsonToObjCClassFile 一键生成。https://github.com/LarryEmerson/JsonToObjCClassFile
 @interface DM_Test_Images :LE_DataModel
 @property (nonatomic , strong) NSNumber              * timestamp;
@@ -50,7 +49,7 @@
     LEResumeBrokenDownload *curDownloader;
     UISwitch *switchWWAN;
     UISwitch *switchPause;
-    
+    UILabel *labelProgress;
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -62,6 +61,56 @@
     LEBaseNavigation *navi=[[LEBaseNavigation alloc] initWithDelegate:self ViewController:self SuperView:view Offset:LEStatusBarHeight BackgroundImage:[LEColorWhite leImageStrechedFromSizeOne] TitleColor:LEColorTextBlack LeftItemImage:nil];
     [navi leSetNavigationTitle:@"LE_AFNetworking"];
     [navi leSetRightNavigationItemWith:@"测试" Image:nil];
+    
+//    NSMutableDictionary *resumeDataDict = [NSMutableDictionary dictionary];
+//    NSMutableURLRequest *newResumeRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@""]];
+//    [newResumeRequest addValue:[NSString stringWithFormat:@"bytes=%ld-",data.length] forHTTPHeaderField:@"Range"];
+//    NSData *newResumeRequestData = [NSKeyedArchiver archivedDataWithRootObject:newResumeRequest];
+//    [resumeDataDict setObject:[NSNumber numberWithInteger:data.length]forKey:@"NSURLSessionResumeBytesReceived"];
+//    [resumeDataDict setObject:newResumeRequestData forKey:@"NSURLSessionResumeCurrentRequest"];
+//    [resumeDataDict setObject:[path lastPathComponent]forKey:@"NSURLSessionResumeInfoTempFileName"];
+//    NSData *resumeData = [NSPropertyListSerialization dataWithPropertyList:resumeDataDict format:NSPropertyListBinaryFormat_v1_0 options:0 error:nil];
+//    
+//    
+//    //拉取属性
+//    unsigned int outCount, i;
+//    objc_property_t *properties = class_copyPropertyList([downloadTask class], &outCount);
+//    for (i = 0; i<outCount; i++)
+//    {
+//        objc_property_t property = properties[i];
+//        const char* char_f =property_getName(property);
+//        NSString *propertyName = [NSString stringWithUTF8String:char_f];
+//        
+//        if ([@"downloadFile" isEqualToString:propertyName])
+//        {
+//            id propertyValue = [downloadTask valueForKey:(NSString *)propertyName];
+//            unsigned int downloadFileoutCount, downloadFileIndex;
+//            objc_property_t *downloadFileproperties = class_copyPropertyList([propertyValue class], &downloadFileoutCount);
+//            for (downloadFileIndex = 0; downloadFileIndex < downloadFileoutCount; downloadFileIndex++)
+//            {
+//                objc_property_t downloadFileproperty = downloadFileproperties[downloadFileIndex];
+//                const char* downloadFilechar_f =property_getName(downloadFileproperty);
+//                NSString *downloadFilepropertyName = [NSString stringWithUTF8String:downloadFilechar_f];
+//                if([@"path" isEqualToString:downloadFilepropertyName])
+//                {
+//                    id downloadFilepropertyValue = [propertyValue valueForKey:(NSString *)downloadFilepropertyName];
+//                    if(!contiueDownload)
+//                    {
+//                        //保存文件临时下载任务
+//                        SaveTmpFileName(afnetClientRequest.url, [downloadFilepropertyValue lastPathComponent]);
+//                    }
+//                    
+//                    break;
+//                }
+//            }
+//            free(downloadFileproperties);
+//        }
+//        else
+//        {
+//            continue;
+//        }
+//    }
+//    free(properties);
 }
 
 -(void) leNavigationRightButtonTapped{
@@ -76,14 +125,18 @@
         [[NSFileManager defaultManager] createDirectoryAtPath:dataPath withIntermediateDirectories:NO attributes:nil error:nil];
     }
     [[LEResumeBrokenDownloadManager sharedInstance] setDownloadedFilePath:dataPath];
+//    [LEResumeBrokenDownloadManager sharedInstance].bytesForPeriodicDataWriting=1024*1024;
+    // 
     //
+    labelProgress=[UILabel new];
     switchWWAN=[UISwitch new];
     switchPause=[UISwitch new];
+    [view.leViewBelowCustomizedNavigation addSubview:labelProgress];
     [view.leViewBelowCustomizedNavigation addSubview:switchWWAN];
     [view.leViewBelowCustomizedNavigation addSubview:switchPause];
-    
     [switchWWAN setFrame:CGRectMake(0, 0, switchWWAN.bounds.size.width, switchWWAN.bounds.size.height)];
     [switchPause setFrame:CGRectMake(switchWWAN.bounds.size.width, 0, switchPause.bounds.size.width, switchPause.bounds.size.height)];
+    [labelProgress setFrame:CGRectMake(switchWWAN.bounds.size.width+switchPause.bounds.size.width, 0, LESCREEN_WIDTH-switchWWAN.bounds.size.width-switchPause.bounds.size.width, switchWWAN.bounds.size.height)];
     //
     [switchWWAN addTarget:self action:@selector(onDownloadSwitch:) forControlEvents:UIControlEventTouchUpInside];
     [LEResumeBrokenDownloadManager sharedInstance].allowNetworkReachViaWWAN=switchWWAN.on;
@@ -101,7 +154,8 @@
 -(void) onTestResumeBrokenDownload{
     if(!curDownloader){
         [self onTestResumeBrokenDownloadInits];
-        curDownloader=[[LEResumeBrokenDownload alloc] initWithDelegate:self Identifier:nil URL:DownloadTest];
+        int rnd=arc4random()%10+1;
+        curDownloader=[[LEResumeBrokenDownload alloc] initWithDelegate:self Identifier:nil URL:[NSString stringWithFormat:@"http://120.25.226.186:32812/resources/videos/minion_%02d.mp4",rnd]];
     }else{
         switch (curDownloader.curDownloadState) {
             case LEResumeBrokenDownloadStateDownloading:
@@ -112,7 +166,7 @@
                 break;
             case LEResumeBrokenDownloadStateNone:
             case LEResumeBrokenDownloadStateWaiting:
-            case LEResumeBrokenDownloadStatePaused:
+            case LEResumeBrokenDownloadStatePausedAutomatically:
             case LEResumeBrokenDownloadStatePausedManually:
             case LEResumeBrokenDownloadStateFailed:
                 [curDownloader leResumeDownload];
@@ -130,6 +184,7 @@
 }
 -(void) leDownloadProgress:(float)progress Identifier:(NSString *)identifier{
 //    LELog(@"progress %f",progress)
+    [labelProgress setText:[NSString stringWithFormat:@"  %f",progress]];
 }
 -(void) leOnAlertForUnreachableNetworkWithIdentifier:(NSString *)identifier{
     LELogFunc
