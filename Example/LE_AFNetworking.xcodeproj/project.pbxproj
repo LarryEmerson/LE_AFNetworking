@@ -186,6 +186,11 @@
 					8080035F1D2BD99D000A926F = {
 						CreatedOnToolsVersion = 7.2.1;
 						DevelopmentTeam = V96P5GMK4T;
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};

@@ -62,55 +62,12 @@
     [navi leSetNavigationTitle:@"LE_AFNetworking"];
     [navi leSetRightNavigationItemWith:@"测试" Image:nil];
     
-//    NSMutableDictionary *resumeDataDict = [NSMutableDictionary dictionary];
-//    NSMutableURLRequest *newResumeRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@""]];
-//    [newResumeRequest addValue:[NSString stringWithFormat:@"bytes=%ld-",data.length] forHTTPHeaderField:@"Range"];
-//    NSData *newResumeRequestData = [NSKeyedArchiver archivedDataWithRootObject:newResumeRequest];
-//    [resumeDataDict setObject:[NSNumber numberWithInteger:data.length]forKey:@"NSURLSessionResumeBytesReceived"];
-//    [resumeDataDict setObject:newResumeRequestData forKey:@"NSURLSessionResumeCurrentRequest"];
-//    [resumeDataDict setObject:[path lastPathComponent]forKey:@"NSURLSessionResumeInfoTempFileName"];
-//    NSData *resumeData = [NSPropertyListSerialization dataWithPropertyList:resumeDataDict format:NSPropertyListBinaryFormat_v1_0 options:0 error:nil];
-//    
-//    
-//    //拉取属性
-//    unsigned int outCount, i;
-//    objc_property_t *properties = class_copyPropertyList([downloadTask class], &outCount);
-//    for (i = 0; i<outCount; i++)
-//    {
-//        objc_property_t property = properties[i];
-//        const char* char_f =property_getName(property);
-//        NSString *propertyName = [NSString stringWithUTF8String:char_f];
-//        
-//        if ([@"downloadFile" isEqualToString:propertyName])
-//        {
-//            id propertyValue = [downloadTask valueForKey:(NSString *)propertyName];
-//            unsigned int downloadFileoutCount, downloadFileIndex;
-//            objc_property_t *downloadFileproperties = class_copyPropertyList([propertyValue class], &downloadFileoutCount);
-//            for (downloadFileIndex = 0; downloadFileIndex < downloadFileoutCount; downloadFileIndex++)
-//            {
-//                objc_property_t downloadFileproperty = downloadFileproperties[downloadFileIndex];
-//                const char* downloadFilechar_f =property_getName(downloadFileproperty);
-//                NSString *downloadFilepropertyName = [NSString stringWithUTF8String:downloadFilechar_f];
-//                if([@"path" isEqualToString:downloadFilepropertyName])
-//                {
-//                    id downloadFilepropertyValue = [propertyValue valueForKey:(NSString *)downloadFilepropertyName];
-//                    if(!contiueDownload)
-//                    {
-//                        //保存文件临时下载任务
-//                        SaveTmpFileName(afnetClientRequest.url, [downloadFilepropertyValue lastPathComponent]);
-//                    }
-//                    
-//                    break;
-//                }
-//            }
-//            free(downloadFileproperties);
-//        }
-//        else
-//        {
-//            continue;
-//        }
-//    }
-//    free(properties);
+    NSString *documentsDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+    NSString *dataPath = [documentsDirectory stringByAppendingPathComponent:@"pdfspath"];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
+        [[NSFileManager defaultManager] createDirectoryAtPath:dataPath withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+
 }
 
 -(void) leNavigationRightButtonTapped{
@@ -124,7 +81,8 @@
     if (![[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
         [[NSFileManager defaultManager] createDirectoryAtPath:dataPath withIntermediateDirectories:NO attributes:nil error:nil];
     }
-    [[LEResumeBrokenDownloadManager sharedInstance] setDownloadedFilePath:dataPath];
+    [[LEResumeBrokenDownloadManager sharedInstance] leSwitchPathDirectoryFromCacheToDocument:YES SubPathComponent:dataPath.lastPathComponent];
+    LELogObject([[documentsDirectory lastPathComponent] stringByAppendingPathComponent:dataPath.lastPathComponent])
 //    [LEResumeBrokenDownloadManager sharedInstance].bytesForPeriodicDataWriting=1024*1024;
     // 
     //
@@ -139,15 +97,15 @@
     [labelProgress setFrame:CGRectMake(switchWWAN.bounds.size.width+switchPause.bounds.size.width, 0, LESCREEN_WIDTH-switchWWAN.bounds.size.width-switchPause.bounds.size.width, switchWWAN.bounds.size.height)];
     //
     [switchWWAN addTarget:self action:@selector(onDownloadSwitch:) forControlEvents:UIControlEventTouchUpInside];
-    [LEResumeBrokenDownloadManager sharedInstance].allowNetworkReachViaWWAN=switchWWAN.on;
-    [LEResumeBrokenDownloadManager sharedInstance].pauseDownloadWhenSwitchedToWWAN=switchPause.on;
+    [LEResumeBrokenDownloadManager sharedInstance].leAllowNetworkReachViaWWAN=switchWWAN.on;
+    [LEResumeBrokenDownloadManager sharedInstance].lePauseDownloadWhenSwitchedToWWAN=switchPause.on;
     LELog(@"WWAN:%@ , Pause:%@",switchWWAN.on?@"ON":@"OFF",switchPause.on?@"ON":@"OFF")
 }
 -(void) onDownloadSwitch:(UISwitch *) swi{
     if([swi isEqual:switchWWAN]){
-        [LEResumeBrokenDownloadManager sharedInstance].allowNetworkReachViaWWAN=swi.on;
+        [LEResumeBrokenDownloadManager sharedInstance].leAllowNetworkReachViaWWAN=swi.on;
     }else if([swi isEqual:switchPause]){
-        [LEResumeBrokenDownloadManager sharedInstance].pauseDownloadWhenSwitchedToWWAN=swi.on;
+        [LEResumeBrokenDownloadManager sharedInstance].lePauseDownloadWhenSwitchedToWWAN=swi.on;
     }
     LELog(@"WWAN:%@ , Pause:%@",switchWWAN.on?@"ON":@"OFF",switchPause.on?@"ON":@"OFF")
 }
@@ -155,14 +113,20 @@
     if(!curDownloader){
         [self onTestResumeBrokenDownloadInits];
         int rnd=arc4random()%10+1;
-        curDownloader=[[LEResumeBrokenDownload alloc] initWithDelegate:self Identifier:nil URL:[NSString stringWithFormat:@"http://120.25.226.186:32812/resources/videos/minion_%02d.mp4",rnd]];
+        rnd=1;
+//        curDownloader=[[LEResumeBrokenDownload alloc] initWithDelegate:self Identifier:nil SessionConfiguration:[NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:@"back"]];
+//        [curDownloader leDownloadWithURL:[NSString stringWithFormat:@"http://120.25.226.186:32812/resources/videos/minion_%02d.mp4",rnd]];
+//        [curDownloader leResumeDownload];
+        
+        curDownloader=[[LEResumeBrokenDownload alloc] initWithDelegate:self Identifier:nil];
+        [curDownloader leDownloadWithURL:[NSString stringWithFormat:@"http://120.25.226.186:32812/resources/videos/minion_%02d.mp4",rnd]]; 
     }else{
-        switch (curDownloader.curDownloadState) {
+        switch (curDownloader.leDownloadState) {
             case LEResumeBrokenDownloadStateDownloading:
                 [curDownloader lePauseDownload];
                 break;
             case LEResumeBrokenDownloadStateCompleted:
-                LELogObject(@"open")
+                LELog(@"open")
                 break;
             case LEResumeBrokenDownloadStateNone:
             case LEResumeBrokenDownloadStateWaiting:

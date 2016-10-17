@@ -3,6 +3,26 @@
 ### #import "LE_AFNetworkings.h"
 ### LE_AFNetworking主要是针对于AFNetworking做了进一步的封装。
 
+## 新增LEResumeBrokenDownload（0.3.2 v2, 0.3.1 v1） 断点续传，支持强制关闭应用续传。
+##### v1-使用的是周期性下载量达到指定量后的自动进度保存，需要写入当前进度信息（4kb），比较低效。
+##### v2-不再做进度信息保存的工作，而是最直接的缓存未下载任务的.tmp文件的路径，续传只需使用.tmp文件构建任务。
+
+## v2 说明：
+```
+-断点续传下载器：任务新建后即会在tmp文件夹生成对应的临时文件(.tmp)，断点续传的主要原理就是保存.tmp文件的路径，下次重新新建任务时，如果存在.tmp文件则采用续传的方式建立任务，否则正常建立任务。
+-runtime获取.tmp路径的思想来源于http://blog.csdn.net/yan_daoqiu/article/details/50469601
+-下载进度只会在任务暂停时才会记录，用于续传之前显示任务进度
+-如需支持后台下载，需要使用接口initWithDelegate:Identifier:SessionConfiguration: 自定义config实现后台下载。
+-可以全局设定下载器是否允许蜂窝网络，是否在切换到蜂窝网络时暂停所有下载。不能完全支持后台下载的情况。Check discussion of property discretionary below
+-前台，可以强制某一个任务绕过app内部蜂窝网络的禁止，执行下载的流程
+-网络断开提醒、切换蜂窝网络提醒、蜂窝网络被禁用提醒，都是针对于某一个下载任务的。多个任务存在的情况下，需要处理好多个任务同时受到提醒时的兼容处理（比如网络断开提示窗只能出现一次，蜂窝网络被禁用提醒，只能当前活动界面做反馈）
+-对url中无后缀的情况作了补救，代价是下载完的内容的读取，必须使用下载器中的leDownloadedFilePath来作为路径。原因是下载完成的文件都是带有后缀的，如果url中无后缀，跳过下载器的leDownloadedFilePath，而使用url在拼接路径，会因为无后缀而找不到已下载完成的文件 
+```
+```
+for the discretionary property:
+When this flag is set, transfers are more likely to occur when plugged into power and on Wi-Fi. This value is false by default. This property is used only if a session’s configuration object was originally constructed by calling the backgroundSessionConfiguration: method, and only for tasks started while the app is in the foreground. If a task is started while the app is in the background, that task is treated as though discretionary were true, regardless of the actual value of this property. For sessions created based on other configurations, this property is ignored.
+```
+
 ####Demo工程演示了LE_AFNetworking的使用及NSDictionary字典内容直接转自定义数据模型对象。
 #####主要代码
 ###### 请求 
