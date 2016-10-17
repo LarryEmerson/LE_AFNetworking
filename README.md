@@ -7,16 +7,22 @@
 ##### v1-使用的是周期性下载量达到指定量后的自动进度保存，需要写入当前进度信息（4kb），比较低效。
 ##### v2-不再做进度信息保存的工作，而是最直接的缓存未下载任务的.tmp文件的路径，续传只需使用.tmp文件构建任务。
 
-## v2 说明：
+## 新增LEResumeBrokenDownload v2 说明：
 ```
--断点续传下载器：任务新建后即会在tmp文件夹生成对应的临时文件(.tmp)，断点续传的主要原理就是保存.tmp文件的路径，下次重新新建任务时，如果存在.tmp文件则采用续传的方式建立任务，否则正常建立任务。
+-断点续传下载器：任务新建后即会在tmp文件夹生成对应的临时文件(.tmp)，断点续传的主要原理就是保存.tmp文件的路径，
+下次重新新建任务时，如果存在.tmp文件则采用续传的方式建立任务，否则正常建立任务。
 -runtime获取.tmp路径的思想来源于http://blog.csdn.net/yan_daoqiu/article/details/50469601
 -下载进度只会在任务暂停时才会记录，用于续传之前显示任务进度
 -如需支持后台下载，需要使用接口initWithDelegate:Identifier:SessionConfiguration: 自定义config实现后台下载。
--可以全局设定下载器是否允许蜂窝网络，是否在切换到蜂窝网络时暂停所有下载。不能完全支持后台下载的情况。Check discussion of property discretionary below
+-可以全局设定下载器是否允许蜂窝网络，是否在切换到蜂窝网络时暂停所有下载。
+不能完全支持后台下载的情况。Check discussion of property discretionary below
 -前台，可以强制某一个任务绕过app内部蜂窝网络的禁止，执行下载的流程
--网络断开提醒、切换蜂窝网络提醒、蜂窝网络被禁用提醒，都是针对于某一个下载任务的。多个任务存在的情况下，需要处理好多个任务同时受到提醒时的兼容处理（比如网络断开提示窗只能出现一次，蜂窝网络被禁用提醒，只能当前活动界面做反馈）
--对url中无后缀的情况作了补救，代价是下载完的内容的读取，必须使用下载器中的leDownloadedFilePath来作为路径。原因是下载完成的文件都是带有后缀的，如果url中无后缀，跳过下载器的leDownloadedFilePath，而使用url在拼接路径，会因为无后缀而找不到已下载完成的文件 
+-网络断开提醒、切换蜂窝网络提醒、蜂窝网络被禁用提醒，都是针对于某一个下载任务的。
+多个任务存在的情况下，需要处理好多个任务同时受到提醒时的兼容处理
+（比如网络断开提示窗只能出现一次，蜂窝网络被禁用提醒，只能当前活动界面做反馈）
+-对url中无后缀的情况作了补救，代价是下载完的内容的读取，必须使用下载器中的leDownloadedFilePath来作为路径。
+原因是下载完成的文件都是带有后缀的，如果url中无后缀，跳过下载器的leDownloadedFilePath，
+而使用url在拼接路径，会因为无后缀而找不到已下载完成的文件 
 ```
 ```
 for the discretionary property:
@@ -31,6 +37,47 @@ that task is treated as though discretionary were true,
 regardless of the actual value of this property. 
 For sessions created based on other configurations, this property is ignored.
 ```
+## 新增LEResumeBrokenDownload v2的使用
+```
+    LEResumeBrokenDownload *downloader=//快速初始化，初始化后立即下载
+        [[LEResumeBrokenDownload alloc] initWithDelegate:self Identifier:nil URL:@""];
+    [downloader lePauseDownload];//暂停
+    [downloader leResumeDownload];//继续
+    if(downloader.leDownloadState==LEResumeBrokenDownloadStateCompleted){//完成下载后打开文件
+       NSString *path=[downloader leDownloadedFilePath];
+       NSLog(@"open file at %@",path);
+    }
+    
+回调：
+=============================================
+/*
+ * @brief 下载完成或者失败时回调
+ */
+-(void) leOnDownloadCompletedWithPath:(NSString *) filePath Error:(NSError *) error Identifier:(NSString *) identifier;
+@optional
+/*
+ * @brief 下载进度回调
+ */
+-(void) leDownloadProgress:(float) progress Identifier:(NSString *) identifier;
+/*
+ * @brief 当前网络切换到 蜂窝移动网络时回调
+ */
+-(void) leOnAlertWhenSwitchedToWWANWithIdentifier:(NSString *) identifier;
+/*
+ * @brief 当前网络不可用时回调
+ */
+-(void) leOnAlertForUnreachableNetworkWithIdentifier:(NSString *) identifier;
+/*
+ * @brief 当前 蜂窝移动网络已打开，但是设置了禁用而无法使用时回调
+ */
+-(void) leOnAlertForUnreachableNetworkViaWWANWithIdentifier:(NSString *) identifier;
+/*
+ * @brief 当前下载状态切换时回调，主要用于UI状态更新
+ */
+-(void) leOnDownloadStateChanged:(LEResumeBrokenDownloadState) state Identifier:(NSString *) identifier;
+```
+
+# TimeLine---------2016 10 17 之前为LE_AFNetworking 请求封装（后续提供请求封装的错误修复及功能扩展与新增）
 
 ####Demo工程演示了LE_AFNetworking的使用及NSDictionary字典内容直接转自定义数据模型对象。
 #####主要代码
