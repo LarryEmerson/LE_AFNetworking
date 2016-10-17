@@ -20,7 +20,16 @@
 ```
 ```
 for the discretionary property:
-When this flag is set, transfers are more likely to occur when plugged into power and on Wi-Fi. This value is false by default. This property is used only if a session’s configuration object was originally constructed by calling the backgroundSessionConfiguration: method, and only for tasks started while the app is in the foreground. If a task is started while the app is in the background, that task is treated as though discretionary were true, regardless of the actual value of this property. For sessions created based on other configurations, this property is ignored.
+When this flag is set, 
+transfers are more likely to occur when plugged into power and on Wi-Fi. 
+This value is false by default. 
+This property is used only if a session’s configuration object was 
+originally constructed by calling the backgroundSessionConfiguration: method, 
+and only for tasks started while the app is in the foreground. 
+If a task is started while the app is in the background, 
+that task is treated as though discretionary were true, 
+regardless of the actual value of this property. 
+For sessions created based on other configurations, this property is ignored.
 ```
 
 ####Demo工程演示了LE_AFNetworking的使用及NSDictionary字典内容直接转自定义数据模型对象。
