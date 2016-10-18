@@ -100,6 +100,11 @@
     [LEResumeBrokenDownloadManager sharedInstance].leAllowNetworkReachViaWWAN=switchWWAN.on;
     [LEResumeBrokenDownloadManager sharedInstance].lePauseDownloadWhenSwitchedToWWAN=switchPause.on;
     LELog(@"WWAN:%@ , Pause:%@",switchWWAN.on?@"ON":@"OFF",switchPause.on?@"ON":@"OFF")
+    UILabel *labelWWAN=[UILabel new].leSuperView(view.leViewBelowCustomizedNavigation).leAnchor(LEAnchorOutsideBottomCenter).leRelativeView(switchWWAN).leAutoLayout.leType;
+    [labelWWAN.leText(@"WWAN").leAlignment(NSTextAlignmentCenter) leLabelLayout];
+    UILabel *labelPause=[UILabel new].leSuperView(view.leViewBelowCustomizedNavigation).leAnchor(LEAnchorOutsideBottomCenter).leRelativeView(switchPause).leAutoLayout.leType;
+    [labelPause.leText(@"Pause").leAlignment(NSTextAlignmentCenter) leLabelLayout];
+    
 }
 -(void) onDownloadSwitch:(UISwitch *) swi{
     if([swi isEqual:switchWWAN]){
@@ -119,8 +124,17 @@
 //        [curDownloader leResumeDownload];
         
         curDownloader=[[LEResumeBrokenDownload alloc] initWithDelegate:self Identifier:nil];
-        [curDownloader leDownloadWithURL:[NSString stringWithFormat:@"http://120.25.226.186:32812/resources/videos/minion_%02d.mp4",rnd]]; 
-    }else{
+        [curDownloader leDownloadWithURL:[NSString stringWithFormat:@"http://120.25.226.186:32812/resources/videos/minion_%02d.mp4",rnd]];
+        
+//        LEResumeBrokenDownload *d=[[LEResumeBrokenDownload alloc] ini];
+//        LEResumeBrokenDownload *downloader=[[LEResumeBrokenDownload alloc] initWithDelegate:self Identifier:nil URL:@""];//快速初始化，初始化后立即下载
+//        [downloader lePauseDownload];//暂停
+//        [downloader leResumeDownload];//继续
+//        if(downloader.leDownloadState==LEResumeBrokenDownloadStateCompleted){//完成下载后打开文件
+//            NSString *path=[downloader leDownloadedFilePath];
+//            NSLog(@"open file at %@",path);
+//        }
+    }else{ 
         switch (curDownloader.leDownloadState) {
             case LEResumeBrokenDownloadStateDownloading:
                 [curDownloader lePauseDownload];
@@ -148,7 +162,7 @@
 }
 -(void) leDownloadProgress:(float)progress Identifier:(NSString *)identifier{
 //    LELog(@"progress %f",progress)
-    [labelProgress setText:[NSString stringWithFormat:@"  %f",progress]];
+    [labelProgress setText:[NSString stringWithFormat:@"下载进度：%f",progress]];
 }
 -(void) leOnAlertForUnreachableNetworkWithIdentifier:(NSString *)identifier{
     LELogFunc

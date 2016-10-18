@@ -18,7 +18,7 @@
 #import <Foundation/Foundation.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 #import "AFNetworking.h" 
-
+/** 下载状态*/
 typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
     LEResumeBrokenDownloadStateNone =0,                     //0 default 初始状态
     LEResumeBrokenDownloadStateWaiting,                     //1 before start downloading 下载等待
@@ -31,29 +31,29 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
 
 #pragma mark Protocol
 @protocol LEResumeBrokenDownloadDelegate <NSObject>
-/*
- * @brief 下载完成或者失败时回调
+/**
+ * @brief 下载完成或者失败时回调:error=nil表示成功，否则失败。成功时filePath 表示已下载完成的文件路径。identifier来源于任务初始化用于区分多个任务。
  */
 -(void) leOnDownloadCompletedWithPath:(NSString *) filePath Error:(NSError *) error Identifier:(NSString *) identifier;
 @optional
-/*
- * @brief 下载进度回调
+/**
+ * @brief 下载进度回调 identifier来源于任务初始化用于区分多个任务。
  */
 -(void) leDownloadProgress:(float) progress Identifier:(NSString *) identifier;
-/*
- * @brief 当前网络切换到 蜂窝移动网络时回调
+/**
+ * @brief 当前网络切换到 蜂窝移动网络时回调 identifier来源于任务初始化用于区分多个任务。
  */
 -(void) leOnAlertWhenSwitchedToWWANWithIdentifier:(NSString *) identifier;
-/*
- * @brief 当前网络不可用时回调
+/**
+ * @brief 当前网络不可用时回调 identifier来源于任务初始化用于区分多个任务。
  */
 -(void) leOnAlertForUnreachableNetworkWithIdentifier:(NSString *) identifier;
-/*
- * @brief 当前 蜂窝移动网络已打开，但是设置了禁用而无法使用时回调
+/**
+ * @brief 当前 蜂窝移动网络已打开，但是设置了禁用而无法使用时回调 identifier来源于任务初始化用于区分多个任务。
  */
 -(void) leOnAlertForUnreachableNetworkViaWWANWithIdentifier:(NSString *) identifier;
-/*
- * @brief 当前下载状态切换时回调，主要用于UI状态更新
+/**
+ * @brief 当前下载状态切换时回调，主要用于UI状态更新 identifier来源于任务初始化用于区分多个任务。
  */
 -(void) leOnDownloadStateChanged:(LEResumeBrokenDownloadState) state Identifier:(NSString *) identifier;
 @end
@@ -61,38 +61,38 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
 #pragma mark Download Manager
 @interface LEResumeBrokenDownloadManager : NSObject
 + (LEResumeBrokenDownloadManager *) sharedInstance;
-/*
+/**
  * @brief 设置是否允许使用 蜂窝移动网络（3G/4G）
  */
 @property (nonatomic) BOOL leAllowNetworkReachViaWWAN;//default YES
 -(void) leSetAllowNetworkReachViaWWAN:(BOOL)allowNetworkReachViaWWAN;
-/*
+/**
  * @brief 是否当切换到 蜂窝移动网络 时，自动暂停正在运行的下载
  */
 @property (nonatomic) BOOL lePauseDownloadWhenSwitchedToWWAN;//default YES;
 -(void) leSetPauseDownloadWhenSwitchedToWWAN:(BOOL)pauseDownloadWhenSwitchedToWWAN;
-/*
+/**
  * @brief 默认常驻内存的全局Session
  */
 @property (nonatomic,readonly) AFURLSessionManager *leSessionManager;
-/*
+/**
  * @brief 默认常驻内存的全局defaultSessionConfiguration
  */
 @property (nonatomic,readonly) NSURLSessionConfiguration *leSessionConfiguration;
-/*
+/**
  * @brief 默认常驻内存的全局文件管理器
  */
 @property (nonatomic,readonly) NSFileManager *leFileManager;
 
-/*
+/**
  * @brief 获取下载文件的统一路径
  */
 @property (nonatomic) NSString *leDownloadedFilePathDirectory;//default NSCachesDirectory
-/*
- * @brief 设置下载文件的统一路径，无法影响已经创建的下载任务
+/**
+ * @brief 设置下载文件的统一路径，无法影响已经创建的下载任务。isSwitch=YES表示使用Document否则使用Cache，component可以为nil可以为多级
  */
 -(void) leSwitchPathDirectoryFromCacheToDocument:(BOOL) isSwitch SubPathComponent:(NSString *) component;
-/*
+/**
  * @brief manager必要的释放（停止网络状态监测）
  */
 -(void) leReleaseManager;
@@ -100,50 +100,51 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
 
 #pragma mark Downloader
 @interface LEResumeBrokenDownload : NSObject
-/*
+/**
  * @brief 下载器状态
  */
 @property (nonatomic, readonly) LEResumeBrokenDownloadState leDownloadState;
-/*
+/**
  * @brief 下载器状态特有标识，用于区分多个下载器
  */
 @property (nonatomic, readonly) NSString *leIdentifier;
-/*
+/**
  * @brief 初始化
- * Step 1 : 初始化 initWithDelegate:Identifier: 或者initWithDelegate:Identifier:SessionConfiguration:(用于自定义，可实现后台下载)
- * Step 2 ：自定义路径 leSetDownloadedFilePath:
- * Step 3 ：设置URL leDownloadWithURL:
- * Step 4 ：开始下载 leResumeDownload
+ Step 1 : 初始化 initWithDelegate:Identifier: 或者initWithDelegate:Identifier:SessionConfiguration:(用于自定义，可实现后台下载)
+ Step 2 ：自定义路径 leSwitchPathDirectoryFromCacheToDocument:SubPathComponent:(可以不设置启用默认配置)
+ Step 3 ：设置URL leDownloadWithURL:
+ Step 4 ：开始下载 leResumeDownload
  */
 -(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier;
-
+/** 自定义SessionConfig的初始化*/
 -(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier SessionConfiguration:(NSURLSessionConfiguration *) config;
-/*
- * @brief 初始化后会自动运行下载
+/**
+ * @brief 快速初始化，完成后自动下载
  */
 -(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier URL:(NSString *) url;
-/*
- * @brief 自定义下载路径，注意在设定URL之前有效，URL设定之后设定会造成已下载内容的丢失或其他问题
+/**
+ * @brief 自定义下载路径，注意在设定URL之前有效，URL设定之后设定会造成已下载内容的丢失或其他问题。未配置默认使用[LEResumeBrokenDownloadManager sharedInstance].downloadedFilePath（Cache）
+ * isSwitch=YES表示使用Document否则使用Cache，component可以为nil可以为多级
  */
--(void) leSwitchPathDirectoryFromCacheToDocument:(BOOL) isSwitch SubPathComponent:(NSString *) component;//default [LEResumeBrokenDownloadManager sharedInstance].downloadedFilePath 
-/*
+-(void) leSwitchPathDirectoryFromCacheToDocument:(BOOL) isSwitch SubPathComponent:(NSString *) component;//default
+/**
  * @brief 设置下载URL，不会自动下载
  */
 -(void) leDownloadWithURL:(NSString *) url;
-/*
+/**
  * @brief 手动暂停下载，与自动暂停下载不同，对应于LEResumeBrokenDownloadStatePausedManually。
  * 自动暂停的详情，请移步LEResumeBrokenDownloadStatePausedAutomatically
  */
 -(void) lePauseDownload;
-/*
+/**
  * @brief 运行下载
  */
 -(void) leResumeDownload;
-/*
+/**
  * @brief 继续下载且绕过禁用蜂窝移动网络的设置。如果禁用了App使用蜂窝移动网络，但是又需要对当前下载器放行，则调用此接口
  */
 -(void) leResumeDownloadViaWWAN;//compatible with leOnAlertForUnreachableNetworkViaWWANWithIdentifier(allowNetworkReachViaWWAN=NO, isReachableViaWWAN=YES)
-/*
+/**
  * @brief 返回文件路径
  * 根据已设定的URL，返回当前文件的文件名称。
  * 如果文件已经完成下载，则文件名称会包含后缀。

@@ -143,6 +143,7 @@ static LEResumeBrokenDownloadManager *_instance;
 -(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier{
     return [self initWithDelegate:delegate Identifier:identifier SessionConfiguration:nil];
 }
+ 
 -(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier SessionConfiguration:(NSURLSessionConfiguration *) config{
     self=[super init];
     self.curDelegate=delegate;
@@ -326,6 +327,10 @@ static LEResumeBrokenDownloadManager *_instance;
 }
 -(void) leResumeDownloadWithUniqueWWANAllowance:(BOOL) allow{
     if(self.leDownloadState==LEResumeBrokenDownloadStateDownloading||self.leDownloadState==LEResumeBrokenDownloadStateCompleted){
+        return;
+    }
+    if(!self.curURL||self.curURL.length==0||downloadTask){
+        NSLog(@"请检查url是否已经正确设置，如果url无误则建议断点调试downloadTask");
         return;
     }
     BOOL isWifi=[LEResumeBrokenDownloadManager sharedInstance].leSessionManager.reachabilityManager.isReachableViaWiFi;
