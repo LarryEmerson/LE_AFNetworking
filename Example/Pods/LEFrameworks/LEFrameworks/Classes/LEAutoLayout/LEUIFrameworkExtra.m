@@ -9,6 +9,299 @@
 #import "LEUIFrameworkExtra.h"
 #pragma mark UIView
 @implementation UIView (LEUIViewFrameWorksExtra)
+#pragma mark button
+-(void) initAutoLayoutButtonSettingsUIBUWith:(UIButton *) button{
+    if(button.leAutoLayoutButtonSettings==nil){
+        button.leAutoLayoutButtonSettings=[[LEAutoLayoutUIButtonSettings alloc] init];
+        button.leAutoLayoutButtonSettings.leTitleFont=LEFont(LELayoutFontSize10);
+        button.leAutoLayoutButtonSettings.leColorNormal=LEColorWhite;
+        button.leAutoLayoutButtonSettings.leColorSelected=LEColorGray;
+    }
+}
+-(LEImage)leImage {
+    __weak typeof(self) weakSelf = self;
+    return ^(UIImage *value) {
+        [weakSelf leImage:value];
+        return weakSelf;
+    };
+}
+-(void) leImage:(UIImage *) image{
+    if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [self initAutoLayoutButtonSettingsUIBUWith:view];
+        view.leAutoLayoutButtonSettings.leImage=image;
+    }else if([self isKindOfClass:[UIImageView class]]){
+        UIImageView *view=(UIImageView *)self;
+        [view leSetImage:image];
+    }
+}
+-(LEImageHighlighted)leImageHighlighted {
+    __weak typeof(self) weakSelf = self;
+    return ^(UIImage *value) {
+        [weakSelf leImageHighlighted:value];
+        return weakSelf;
+    };
+}
+-(void) leImageHighlighted:(UIImage *) image{
+    if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [self initAutoLayoutButtonSettingsUIBUWith:view];
+        view.leAutoLayoutButtonSettings.leImageHighlighted=image;
+    }
+}
+-(LEBackgroundImage)leBackgroundImage {
+    __weak typeof(self) weakSelf = self;
+    return ^(UIImage *value) {
+        [weakSelf leBackgroundImage:value];
+        return weakSelf;
+    };
+}
+-(void) leBackgroundImage:(UIImage *) image{
+    if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [self initAutoLayoutButtonSettingsUIBUWith:view];
+        view.leAutoLayoutButtonSettings.leBackgroundImage=image;
+    }
+}
+-(LEBackgroundImageHighlighted)leBackgroundImageHighlighted {
+    __weak typeof(self) weakSelf = self;
+    return ^(UIImage *value) {
+        [weakSelf leBackgroundImageHighlighted:value];
+        return weakSelf;
+    };
+}
+-(void) leBackgroundImageHighlighted:(UIImage *) image{
+    if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [self initAutoLayoutButtonSettingsUIBUWith:view];
+        view.leAutoLayoutButtonSettings.leBackgroundImageHighlighted=image;
+    }
+}
+-(LEHighlightedColor)leHighlightedColor {
+    __weak typeof(self) weakSelf = self;
+    return ^(UIColor *value) {
+        [weakSelf leHighlightedColor:value];
+        return weakSelf;
+    };
+}
+-(void) leHighlightedColor:(UIColor *) color{
+    if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [self initAutoLayoutButtonSettingsUIBUWith:view];
+        view.leAutoLayoutButtonSettings.leColorSelected=color;
+    }
+}
+-(LEButtonHorizontalEdgeInsects)leButtonGap {
+    __weak typeof(self) weakSelf = self;
+    return ^(int value) {
+        [weakSelf leButtonHorizontalEdgeInsects:value];
+        return weakSelf;
+    };
+}
+-(void) leButtonHorizontalEdgeInsects:(int) gap{
+    if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [self initAutoLayoutButtonSettingsUIBUWith:view];
+        view.leAutoLayoutButtonSettings.leSpace=gap;
+    }
+}
+#pragma mark textfield
+-(LEPlaceHolder)lePlaceHolder {
+    __weak typeof(self) weakSelf = self;
+    return ^(NSString *value) {
+        [weakSelf lePlaceHolder:value];
+        return weakSelf;
+    };
+}
+-(void) lePlaceHolder:(NSString *) placeHolder{
+    if([self isKindOfClass:[UITextField class]]){
+        UITextField *view=(UITextField *)self;
+        [view setPlaceholder:placeHolder];
+    }
+}
+-(LEReturnType)leReturnType {
+    __weak typeof(self) weakSelf = self;
+    return ^(UIReturnKeyType value) {
+        [weakSelf leRetureType:value];
+        return weakSelf;
+    };
+}
+-(void) leRetureType:(UIReturnKeyType) returnType{
+    if([self isKindOfClass:[UITextField class]]){
+        UITextField *view=(UITextField *)self;
+        [view setReturnKeyType:returnType];
+    }
+}
+-(LEDelegateOfTextField)leDelegateOfTextField {
+    __weak typeof(self) weakSelf = self;
+    return ^(id<UITextFieldDelegate> value) {
+        [weakSelf leDelegateOfTextField:value];
+        return weakSelf;
+    };
+}
+-(void) leDelegateOfTextField:(id<UITextFieldDelegate>) delegateOfTextField{
+    if([self isKindOfClass:[UITextField class]]){
+        UITextField *view=(UITextField *)self;
+        [view setDelegate:delegateOfTextField];
+    }
+}
+#pragma mark label
+-(void) initAutoLayoutLabelSettingsWith:(UILabel *) label{
+    if(label.leAutoLayoutLabelSettings==nil){
+        label.leAutoLayoutLabelSettings=[[LEAutoLayoutLabelSettings alloc] initWithText:nil FontSize:LELayoutFontSize12 Font:nil Width:0 Height:0 Color:LEColorTextBlack Line:0 Alignment:NSTextAlignmentLeft];
+    }
+}
+-(LEText)leText {
+    __weak typeof(self) weakSelf = self;
+    return ^(NSString *value) {
+        [weakSelf leText:value];
+        return weakSelf;
+    };
+}
+-(void) leText:(NSString *) text{
+    if([self isKindOfClass:[UILabel class]]){
+        UILabel *label=(UILabel *)self;
+        [self initAutoLayoutLabelSettingsWith:label];
+        label.leAutoLayoutLabelSettings.leText=text;
+    }else if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [self initAutoLayoutButtonSettingsUIBUWith:view];
+        view.leAutoLayoutButtonSettings.leTitle=text;
+    }else if([self isKindOfClass:[UITextField class]]){
+        UITextField *view=(UITextField *)self;
+        [view setText:text];
+    }
+}
+-(LEFont)leFont {
+    __weak typeof(self) weakSelf = self;
+    return ^(UIFont *value) {
+        [weakSelf leFont:value];
+        return weakSelf;
+    };
+}
+-(void) leFont:(UIFont *) font{
+    if([self isKindOfClass:[UILabel class]]){
+        UILabel *label=(UILabel *)self;
+        [self initAutoLayoutLabelSettingsWith:label];
+        label.leAutoLayoutLabelSettings.leFont=font;
+    }else if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [self initAutoLayoutButtonSettingsUIBUWith:view];
+        view.leAutoLayoutButtonSettings.leTitleFont=font;
+    }else if([self isKindOfClass:[UITextField class]]){
+        UITextField *view=(UITextField *)self;
+        [view setFont:font];
+    }
+}
+-(LEMaxWidth)leWidth {
+    __weak typeof(self) weakSelf = self;
+    return ^(CGFloat value) {
+        [weakSelf leWidth:value];
+        return weakSelf;
+    };
+}
+-(void) leWidth:(CGFloat) width{
+    if([self isKindOfClass:[UILabel class]]){
+        UILabel *label=(UILabel *)self;
+        [self initAutoLayoutLabelSettingsWith:label];
+        label.leAutoLayoutLabelSettings.leWidth=width;
+    }else if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [self initAutoLayoutButtonSettingsUIBUWith:view];
+        view.leAutoLayoutButtonSettings.leDeadSize=CGSizeMake(width, view.leAutoLayoutButtonSettings.leDeadSize.height);
+    }else {
+        [self initAutoLayoutSettings];
+        self.leAutoLayoutSettings.leSize=CGSizeMake(width, self.leAutoLayoutSettings.leSize.height);
+    }
+}
+-(LEMaxHeight)leHeight {
+    __weak typeof(self) weakSelf = self;
+    return ^(CGFloat value) {
+        [weakSelf leHeight:value];
+        return weakSelf;
+    };
+}
+-(void) leHeight:(CGFloat) height{
+    if([self isKindOfClass:[UILabel class]]){
+        UILabel *label=(UILabel *)self;
+        [self initAutoLayoutLabelSettingsWith:label];
+        label.leAutoLayoutLabelSettings.leHeight=height;
+    }else if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [self initAutoLayoutButtonSettingsUIBUWith:view];
+        view.leAutoLayoutButtonSettings.leDeadSize=CGSizeMake(view.leAutoLayoutButtonSettings.leDeadSize.width,height);
+    }else {
+        [self initAutoLayoutSettings];
+        self.leAutoLayoutSettings.leSize=CGSizeMake(self.leAutoLayoutSettings.leSize.height, height);
+    }
+}
+-(LEColor)leColor {
+    __weak typeof(self) weakSelf = self;
+    return ^(UIColor *value) {
+        [weakSelf leColor:value];
+        return weakSelf;
+    };
+}
+-(void) leColor:(UIColor *) color{
+    if([self isKindOfClass:[UILabel class]]){
+        UILabel *label=(UILabel *)self;
+        [self initAutoLayoutLabelSettingsWith:label];
+        label.leAutoLayoutLabelSettings.leColor=color;
+    }else if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [self initAutoLayoutButtonSettingsUIBUWith:view];
+        view.leAutoLayoutButtonSettings.leColorNormal=color;
+    }else if([self isKindOfClass:[UITextField class]]){
+        UITextField *view=(UITextField *)self;
+        [view setTextColor:color];
+    }
+}
+-(LELine)leLine {
+    __weak typeof(self) weakSelf = self;
+    return ^(int value) {
+        [weakSelf leLine:value];
+        return weakSelf;
+    };
+}
+-(void) leLine:(int) line{
+    if([self isKindOfClass:[UILabel class]]){
+        UILabel *label=(UILabel *)self;
+        [self initAutoLayoutLabelSettingsWith:label];
+        label.leAutoLayoutLabelSettings.leLine=line;
+    }
+}
+-(LEAlignment)leAlignment {
+    __weak typeof(self) weakSelf = self;
+    return ^(NSTextAlignment value) {
+        [weakSelf leAlignment:value];
+        return weakSelf;
+    };
+}
+-(void) leAlignment:(NSTextAlignment) alignment{
+    if([self isKindOfClass:[UILabel class]]){
+        UILabel *label=(UILabel *)self;
+        [self initAutoLayoutLabelSettingsWith:label];
+        label.leAutoLayoutLabelSettings.leAlignment=alignment;
+    }else if([self isKindOfClass:[UITextField class]]){
+        UITextField *view=(UITextField *)self;
+        [view setTextAlignment:alignment];
+    }
+}
+-(LELineSpace)leLineSpace {
+    __weak typeof(self) weakSelf = self;
+    return ^(CGFloat value) {
+        [weakSelf leLineSpace:value];
+        return weakSelf;
+    };
+}
+-(void) leLineSpace:(CGFloat) linespace{
+    if([self isKindOfClass:[UILabel class]]){
+        UILabel *label=(UILabel *)self;
+        [self initAutoLayoutLabelSettingsWith:label];
+        [label leSetLineSpace:linespace];
+    }
+}
+//
 -(void) initAutoLayoutSettings{
     if(self.leAutoLayoutSettings==nil){
         self.leAutoLayoutSettings=[[LEAutoLayoutSettings alloc] init];
@@ -21,7 +314,18 @@
         return weakSelf;
     };
 }
--(id) leType{
+-(id) leType{ 
+    return self;
+}
+- (LEInit)leInit {
+    __weak typeof(self) weakSelf = self;
+    return ^() {
+        [weakSelf leInitSelf];
+        return weakSelf;
+    };
+}
+-(id) leInitSelf{
+    [self leExtraInits];
     return self;
 }
 - (LEAutoLayout)leLayout {
@@ -31,8 +335,16 @@
         return weakSelf;
     };
 }
--(UIView *)leAutoLayout{
-    [self leExecAutoLayout];
+-(id)leAutoLayout{
+    if([self isKindOfClass:[UILabel class]]){
+        UILabel *view=(UILabel *)self;
+        [view leLabelLayout];
+    }else if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [view leButtonLayout];
+    }else{
+        [self leExecAutoLayout];
+    }
     return self;
 }
 //
@@ -154,7 +466,11 @@
         edgeInsects.bottom=-fabs(edgeInsects.bottom);
         self.leAutoLayoutSettings.leOffset=CGPointMake(-edgeInsects.left, -edgeInsects.top);
         self.leAutoLayoutSettings.leSize=CGSizeMake(relativeSize.width+edgeInsects.left+edgeInsects.right, relativeSize.height+edgeInsects.top+edgeInsects.bottom);
-        
+        if([self isKindOfClass:[UIButton class]]){
+            UIButton *button=(UIButton *)self;
+            [self initAutoLayoutButtonSettingsUIBUWith:button];
+            button.leAutoLayoutButtonSettings.leDeadSize=self.leAutoLayoutSettings.leSize;
+        }
         self.leAutoLayoutSettings.leRelativeChangeView=self.leAutoLayoutSettings.leSuperView;
         self.leAutoLayoutSettings.leEdgeInsets=edgeInsects;
         //
@@ -171,7 +487,14 @@
     [self setUserInteractionEnabled:enable];
 }
 -(void) leTapEvent:(SEL)sel Target:(id)target{
-    [self leAddTapEventWithSEL:sel Target:target];
+    if([self isKindOfClass:[UIButton class]]){
+        UIButton *view=(UIButton *)self;
+        [self initAutoLayoutButtonSettingsUIBUWith:view];
+        view.leAutoLayoutButtonSettings.leTarget=target;
+        view.leAutoLayoutButtonSettings.leSEL=sel;
+    }else{
+        [self leAddTapEventWithSEL:sel Target:target];
+    }
 }
 @end
 
@@ -183,6 +506,9 @@
     }
 } 
 -(void)leLabelLayout{
+    if(!self.leAutoLayoutLabelSettings.leText||self.leAutoLayoutLabelSettings.leText.length==0){//解决未执行letext时，label不显示的问题
+        self.leText(@"");
+    }
     int width=self.leAutoLayoutLabelSettings.leWidth;
     int height=self.leAutoLayoutLabelSettings.leHeight;
     if(width<=0/*||width>LESCREEN_WIDTH*/){
@@ -198,6 +524,11 @@
             size=[self.leAutoLayoutLabelSettings.leText leGetSizeWithFont:self.leAutoLayoutLabelSettings.leFont MaxSize:CGSizeMake(width, height)];
         }else if(self.leAutoLayoutLabelSettings.leLine>=1){
             size=[self.leAutoLayoutLabelSettings.leText leGetSizeWithFont:self.leAutoLayoutLabelSettings.leFont MaxSize:CGSizeMake(width, height)];
+            if(self.leAutoLayoutLabelSettings.leLine==1&&self.leAutoLayoutLabelSettings.leHeight==0){
+                size.height=self.font.lineHeight;
+            }else{
+                size.height=self.font.lineHeight*self.leAutoLayoutLabelSettings.leLine;
+            }
             if(self.leAutoLayoutLabelSettings.leHeight!=0){
                 size.height=self.leAutoLayoutLabelSettings.leHeight;
             }
@@ -256,6 +587,9 @@
     __weak typeof(self) weakSelf = self;
     return ^(int value) {
         [weakSelf leLine:value];
+        if(value==1){
+            [weakSelf leHeight:weakSelf.font.lineHeight];
+        }
         return weakSelf;
     };
 }
@@ -319,6 +653,13 @@
         self.leAutoLayoutButtonSettings.leColorNormal=LEColorWhite;
         self.leAutoLayoutButtonSettings.leColorSelected=LEColorGray;
     }
+}
+-(LEButtonDeadSize) leButtonSize{
+    __weak typeof(self) weakSelf = self;
+    return ^(CGSize value) {
+        [weakSelf leButtonSize:value];
+        return weakSelf;
+    };
 }
 -(LEButtonText) leText{
     __weak typeof(self) weakSelf = self;
@@ -399,6 +740,10 @@
         return weakSelf;
     };
 }
+-(void) leButtonSize:(CGSize) size{
+    [self initAutoLayoutButtonSettings];
+    self.leAutoLayoutButtonSettings.leDeadSize=size;
+}
 -(void) leText:(NSString *) text{
     [self initAutoLayoutButtonSettings];
     self.leAutoLayoutButtonSettings.leTitle=text;
@@ -447,6 +792,7 @@
 }
 -(void) leButtonLayout{
     UIButton *button=self;
+    [button.titleLabel setFont:self.leAutoLayoutButtonSettings.leTitleFont];
     [button setTitle:self.leAutoLayoutButtonSettings.leTitle forState:UIControlStateNormal];
     [button setTitleColor:self.leAutoLayoutButtonSettings.leColorNormal forState:UIControlStateNormal];
     [button setTitleColor:self.leAutoLayoutButtonSettings.leColorSelected forState:UIControlStateHighlighted];
@@ -455,26 +801,24 @@
     [button setImage:self.leAutoLayoutButtonSettings.leImageHighlighted forState:UIControlStateHighlighted];
     [button setBackgroundImage:self.leAutoLayoutButtonSettings.leBackgroundImageHighlighted forState:UIControlStateHighlighted];
     [button addTarget:self.leAutoLayoutButtonSettings.leTarget action:self.leAutoLayoutButtonSettings.leSEL forControlEvents:UIControlEventTouchUpInside];
-    [button.titleLabel setFont:self.leAutoLayoutButtonSettings.leTitleFont];
+    UIImage *img=self.leAutoLayoutButtonSettings.leImage;
     //
     int space=self.leAutoLayoutButtonSettings.leSpace;
     if(space==0){
         space=LEDefaultButtonHorizontalSpace;
     }
-    CGSize finalSize=self.leAutoLayoutSettings.leSize;
-    while (YES) {
+    CGSize finalSize=self.leAutoLayoutButtonSettings.leDeadSize;
+    if(self.tag==12345)NSLog(@"%@",NSStringFromCGSize(self.leAutoLayoutButtonSettings.leDeadSize));
+    if(finalSize.width==0||finalSize.height==0){
         CGSize textSize=[button.titleLabel leGetLabelTextSize];
-        if(textSize.width+space*2>finalSize.width){
-            finalSize.width = textSize.width+space*2;
+        finalSize.width = textSize.width+space*2+(img?img.size.width:0);
+        finalSize.height=MAX(textSize.height, img?img.size.height:0)+LEDefaultButtonVerticalSpace*2;
+        if(self.leAutoLayoutButtonSettings.leMaxWidth>0||self.leAutoLayoutButtonSettings.leDeadSize.width>0){
+            finalSize.width=MIN(self.leAutoLayoutButtonSettings.leMaxWidth, finalSize.width);
+            finalSize.width=MIN(self.leAutoLayoutButtonSettings.leDeadSize.width, finalSize.width);
         }
-        if(textSize.height+LEDefaultButtonVerticalSpace*2>finalSize.height){
-            finalSize.height = textSize.height+LEDefaultButtonVerticalSpace*2;
-        }
-        if(self.leAutoLayoutButtonSettings.leMaxWidth>0 && finalSize.width>self.leAutoLayoutButtonSettings.leMaxWidth){
-            finalSize.width=button.leAutoLayoutButtonSettings.leMaxWidth;
-            self.leAutoLayoutButtonSettings.leTitleFont=[self.leAutoLayoutButtonSettings.leTitleFont fontWithSize:self.leAutoLayoutButtonSettings.leTitleFont.pointSize-0.2];
-        }else{
-            break;
+        if(self.leAutoLayoutButtonSettings.leDeadSize.height>0){
+            finalSize.height=MIN(self.leAutoLayoutButtonSettings.leDeadSize.height, finalSize.height);
         }
     }
     self.leAutoLayoutSettings.leSize=finalSize;
@@ -557,7 +901,7 @@
 @end
 #pragma mark UIImageView
 @implementation UIImageView (LEUIUIImageViewFrameWorksExtra)
--(LEImage)leImage{
+-(LEImageWithImageSize)leImage{
     __weak typeof(self) weakSelf = self;
     return ^(UIImage *value) {
         [weakSelf leImage:value];

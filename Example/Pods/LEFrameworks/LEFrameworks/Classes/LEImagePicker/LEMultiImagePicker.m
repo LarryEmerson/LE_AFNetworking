@@ -141,20 +141,12 @@
         if(result) {
             [self addALAsset:result];
         }else{
-//            if(curArray&&curArray.count>0){
-//                curArray=[[[curArray reverseObjectEnumerator] allObjects] mutableCopy];
-//            }
+            if(curArray&&curArray.count>0){
+                curArray=[[[curArray reverseObjectEnumerator] allObjects] mutableCopy];
+            }
             [weakself reloadCell];
-            [weakself scrollViewToBottom:YES];
         }
     }];
-}
-- (void)scrollViewToBottom:(BOOL)animated{
-    if (collection.contentSize.height > collection.frame.size.height)
-    {
-        CGPoint offset = CGPointMake(0, collection.contentSize.height - collection.frame.size.height);
-        [collection setContentOffset:offset animated:animated];
-    }
 }
 -(void) addALAsset:(ALAsset *) asset{
     NSMutableDictionary *dic=[NSMutableDictionary new];
@@ -163,10 +155,14 @@
     [curArray addObject:dic];
 }
 -(void) leNavigationRightButtonTapped{
+    [self.leCurrentViewController.navigationController popToViewController:curRootVC animated:YES];
     if(curDelegate&&[curDelegate respondsToSelector:@selector(leOnMultiImagePickedWith:)]){
         [curDelegate leOnMultiImagePickedWith:[self getData]];
     }
-    [self.leCurrentViewController.navigationController popToViewController:curRootVC animated:YES];
+    if(curDelegate&&[curDelegate respondsToSelector:@selector(leOnMultiImageAssetPickedWith:)]){
+        [curDelegate leOnMultiImageAssetPickedWith:[self getAssets]];
+    }
+    
 }
 -(void) reloadCell{
 //    for (int i=0; i<curArray.count; i++) {
@@ -179,43 +175,53 @@
 //    [curScrollView setContentSize:CGSizeMake(LESCREEN_WIDTH, (cellSize+space)*(curArray.count/4+(curArray.count%4==0?0:1)))];
     [collection leOnRefreshedWithData:curArray];
 }
-
+-(NSArray *) getAssets{
+    NSMutableArray *muta=[NSMutableArray new];
+    //    for (NSInteger i=curSelections.count-1; i>=0; i--) {
+    for (NSInteger i=0;i<curSelections.count;i++) {
+        NSIndexPath *index=[curSelections objectAtIndex:i];
+        ALAssetRepresentation *asset=[[[curArray objectAtIndex:index.row] objectForKey:@"asset"] defaultRepresentation];
+        [muta addObject:asset];
+    }
+    return muta;
+}
 -(NSArray *) getData{
     NSMutableArray *muta=[NSMutableArray new];
     //    for (NSInteger i=curSelections.count-1; i>=0; i--) {
     for (NSInteger i=0;i<curSelections.count;i++) {
         NSIndexPath *index=[curSelections objectAtIndex:i];
         ALAssetRepresentation *asset=[[[curArray objectAtIndex:index.row] objectForKey:@"asset"] defaultRepresentation];
-        UIImageOrientation ori=UIImageOrientationUp;
-        switch (asset.orientation) {
-            case ALAssetOrientationUp:
-                ori=UIImageOrientationUp;
-                break;
-            case ALAssetOrientationDown:
-                ori=UIImageOrientationDown;
-                break;
-            case ALAssetOrientationLeft:
-                ori=UIImageOrientationLeft;
-                break;
-            case ALAssetOrientationRight:
-                ori=UIImageOrientationRight;
-                break;
-            case ALAssetOrientationUpMirrored:
-                ori=UIImageOrientationUpMirrored;
-                break;
-            case ALAssetOrientationDownMirrored:
-                ori=UIImageOrientationDownMirrored;
-                break;
-            case ALAssetOrientationLeftMirrored:
-                ori=UIImageOrientationLeftMirrored;
-                break;
-            case ALAssetOrientationRightMirrored:
-                ori=UIImageOrientationRightMirrored;
-                break;
-            default:
-                break;
-        }
-        [muta addObject:[UIImage imageWithCGImage:[asset fullResolutionImage] scale:1 orientation:ori]];
+//        UIImageOrientation ori=UIImageOrientationUp;
+//        switch (asset.orientation) {
+//            case ALAssetOrientationUp:
+//                ori=UIImageOrientationUp;
+//                break;
+//            case ALAssetOrientationDown:
+//                ori=UIImageOrientationDown;
+//                break;
+//            case ALAssetOrientationLeft:
+//                ori=UIImageOrientationLeft;
+//                break;
+//            case ALAssetOrientationRight:
+//                ori=UIImageOrientationRight;
+//                break;
+//            case ALAssetOrientationUpMirrored:
+//                ori=UIImageOrientationUpMirrored;
+//                break;
+//            case ALAssetOrientationDownMirrored:
+//                ori=UIImageOrientationDownMirrored;
+//                break;
+//            case ALAssetOrientationLeftMirrored:
+//                ori=UIImageOrientationLeftMirrored;
+//                break;
+//            case ALAssetOrientationRightMirrored:
+//                ori=UIImageOrientationRightMirrored;
+//                break;
+//            default:
+//                break;
+//        }
+//        [muta addObject:[UIImage imageWithCGImage:[asset fullResolutionImage] scale:1 orientation:ori]];
+        [muta addObject:[UIImage imageWithCGImage:[asset fullResolutionImage]]];
     }
     return muta;
     //    NSMutableArray *array=[[NSMutableArray alloc] init];
