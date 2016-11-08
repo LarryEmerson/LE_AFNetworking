@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import "FMDatabase.h"
+#import <FMDB/FMDB.h>
 
 @interface LE_DataManager : NSObject
 + (LE_DataManager *) sharedInstance;

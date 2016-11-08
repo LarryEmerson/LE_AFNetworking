@@ -17,8 +17,7 @@
 
 #import <Foundation/Foundation.h>
 #import <SystemConfiguration/SystemConfiguration.h>
-#import "AFNetworking.h" 
-@class LEResumeBrokenDownload;
+#import "AFNetworking.h"
 /** 下载状态*/
 typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
     LEResumeBrokenDownloadStateNone =0,                     //0 default 初始状态
@@ -58,53 +57,6 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
  */
 -(void) leOnDownloadStateChanged:(LEResumeBrokenDownloadState) state Identifier:(NSString *) identifier;
 
-@end
-
-#pragma mark Download Manager
-@interface LEResumeBrokenDownloadManager : NSObject
-+ (LEResumeBrokenDownloadManager *) sharedInstance;
-/**
- * @brief 设置是否允许使用 蜂窝移动网络（3G/4G）
- */
-@property (nonatomic) BOOL leAllowNetworkReachViaWWAN;//default YES
--(void) leSetAllowNetworkReachViaWWAN:(BOOL)allowNetworkReachViaWWAN;
-/**
- * @brief 是否当切换到 蜂窝移动网络 时，自动暂停正在运行的下载
- */
-@property (nonatomic) BOOL lePauseDownloadWhenSwitchedToWWAN;//default YES;
--(void) leSetPauseDownloadWhenSwitchedToWWAN:(BOOL)pauseDownloadWhenSwitchedToWWAN;
-/**
- * @brief 默认常驻内存的全局Session
- */
-@property (nonatomic,readonly) AFURLSessionManager *leSessionManager;
-/**
- * @brief 默认常驻内存的全局defaultSessionConfiguration
- */
-@property (nonatomic,readonly) NSURLSessionConfiguration *leSessionConfiguration;
-/**
- * @brief 默认常驻内存的全局文件管理器
- */
-@property (nonatomic,readonly) NSFileManager *leFileManager;
-
-/**
- * @brief 获取下载文件的统一路径
- */
-@property (nonatomic) NSString *leDownloadedFilePathDirectory;//default NSCachesDirectory
-/**
- * @brief 设置下载文件的统一路径，无法影响已经创建的下载任务。isSwitch=YES表示使用Document否则使用Cache，component可以为nil可以为多级
- */
--(void) leSwitchPathDirectoryFromCacheToDocument:(BOOL) isSwitch SubPathComponent:(NSString *) component;
-/**
- * @brief manager必要的释放（停止网络状态监测）
- */
--(void) leReleaseManager;
-
-/** 该接口生成的下载器由manager管理，避免重复下载且相同url对应唯一一个下载器，回调使用最新的delegate */
--(LEResumeBrokenDownload *) leDownloadWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate URL:(NSString *) url;
-/** 是否存在url对应的下载器*/
--(BOOL) leIsDownloadExisted:(NSString *) url;
-/** 根据url获取download*/
--(LEResumeBrokenDownload *) leGetDownloadWithUrl:(NSString *) url;
 @end
 
 #pragma mark Downloader
@@ -162,4 +114,50 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
  */
 -(NSString *) leDownloadedFilePath;
 
+@end
+#pragma mark Download Manager
+@interface LEResumeBrokenDownloadManager : NSObject
++ (LEResumeBrokenDownloadManager *) sharedInstance;
+/**
+ * @brief 设置是否允许使用 蜂窝移动网络（3G/4G）
+ */
+@property (nonatomic) BOOL leAllowNetworkReachViaWWAN;//default YES
+-(void) leSetAllowNetworkReachViaWWAN:(BOOL)allowNetworkReachViaWWAN;
+/**
+ * @brief 是否当切换到 蜂窝移动网络 时，自动暂停正在运行的下载
+ */
+@property (nonatomic) BOOL lePauseDownloadWhenSwitchedToWWAN;//default YES;
+-(void) leSetPauseDownloadWhenSwitchedToWWAN:(BOOL)pauseDownloadWhenSwitchedToWWAN;
+/**
+ * @brief 默认常驻内存的全局Session
+ */
+@property (nonatomic,readonly) AFURLSessionManager *leSessionManager;
+/**
+ * @brief 默认常驻内存的全局defaultSessionConfiguration
+ */
+@property (nonatomic,readonly) NSURLSessionConfiguration *leSessionConfiguration;
+/**
+ * @brief 默认常驻内存的全局文件管理器
+ */
+@property (nonatomic,readonly) NSFileManager *leFileManager;
+
+/**
+ * @brief 获取下载文件的统一路径
+ */
+@property (nonatomic) NSString *leDownloadedFilePathDirectory;//default NSCachesDirectory
+/**
+ * @brief 设置下载文件的统一路径，无法影响已经创建的下载任务。isSwitch=YES表示使用Document否则使用Cache，component可以为nil可以为多级
+ */
+-(void) leSwitchPathDirectoryFromCacheToDocument:(BOOL) isSwitch SubPathComponent:(NSString *) component;
+/**
+ * @brief manager必要的释放（停止网络状态监测）
+ */
+-(void) leReleaseManager;
+
+/** 该接口生成的下载器由manager管理，避免重复下载且相同url对应唯一一个下载器，回调使用最新的delegate */
+-(LEResumeBrokenDownload *) leDownloadWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate URL:(NSString *) url;
+/** 是否存在url对应的下载器*/
+-(BOOL) leIsDownloadExisted:(NSString *) url;
+/** 根据url获取download*/
+-(LEResumeBrokenDownload *) leGetDownloadWithUrl:(NSString *) url;
 @end

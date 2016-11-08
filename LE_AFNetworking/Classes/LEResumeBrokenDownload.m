@@ -275,7 +275,7 @@ static LEResumeBrokenDownloadManager *_instance;
                     if(tmpData&&tmpData.length>0){
                         NSMutableDictionary *resumeDataDict = [NSMutableDictionary new];
                         NSMutableURLRequest *newResumeRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:self.curURL]];
-                        [newResumeRequest addValue:[NSString stringWithFormat:LEDownloadResumeDataLength,tmpData.length] forHTTPHeaderField:LEDownloadHttpFieldRange];
+                        [newResumeRequest addValue:[NSString stringWithFormat:LEDownloadResumeDataLength,(long)(tmpData.length)] forHTTPHeaderField:LEDownloadHttpFieldRange];
                         NSData *newResumeRequestData = [NSKeyedArchiver archivedDataWithRootObject:newResumeRequest];
                         [resumeDataDict setObject:[NSNumber numberWithInteger:tmpData.length]forKey:LEDownloadKeyBytesReceived];
                         [resumeDataDict setObject:newResumeRequestData forKey:LEDownloadKeyCurrentRequest];
