@@ -17,7 +17,7 @@
 
 #import <Foundation/Foundation.h>
 #import <SystemConfiguration/SystemConfiguration.h>
-#import "AFNetworking.h"
+#import <AFNetworking/AFNetworking.h>
 /** 下载状态*/
 typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
     LEResumeBrokenDownloadStateNone =0,                     //0 default 初始状态
