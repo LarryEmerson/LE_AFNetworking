@@ -1,6 +1,18 @@
 # LEFrameworks
 IOS Development Frameworks 持续更新中 
 
+## Installation
+
+LEFrameworks is available through [CocoaPods](http://cocoapods.org). To install
+it, simply add the following line to your Podfile:
+
+```
+platform :ios, '7.0'
+target "ProjectName” do 
+pod "LEFrameworks"
+end 
+```
+
 ### 导入头文件
 ```
  #import <LEFrameworks/LEFrameworks.h>
@@ -8,11 +20,17 @@ IOS Development Frameworks 持续更新中
 
 # 2016-10-18 推出 自动排版V2
 特点：
+
 1- 一行生成UI控件：view、UILabel、UIImageView、UIButton、UITextfield
+
 2- 自动排版
+
 3- 每行最后需要追加方法leAutoLayout，逻辑是根据之前的设置进行排版
+
 gif演示：
+
 ![](https://github.com/LarryEmerson/LEAllFrameworksGif/blob/master/LEUIFrameworkExtra.gif)
+
 主要接口：
 ```
 /**
@@ -142,7 +160,7 @@ gif演示：
 ```
 Demo代码示例：
 ```
-UIView *BG=[UIView new].leSuperView(view.leViewBelowCustomizedNavigation).leEdgeInsects(UIEdgeInsetsMake(10, 10, 10, 10)).leBackground(LEColorMask).leRoundCorner(8).leAutoLayout;
+    UIView *BG=[UIView new].leSuperView(view.leViewBelowCustomizedNavigation).leEdgeInsects(UIEdgeInsetsMake(10, 10, 10, 10)).leBackground(LEColorMask).leRoundCorner(8).leAutoLayout;
     autoLayoutLabel=[UILabel new].leSuperView(BG).leAnchor(LEAnchorInsideTopCenter).leOffset(CGPointMake(0, LELayoutSideSpace)).leSize(CGSizeMake(BG.bounds.size.width-LELayoutSideSpace, 0)).leWidth(BG.bounds.size.width-LELayoutSideSpace).leAlignment(NSTextAlignmentCenter).leFont(LEFont(LELayoutFontSize14)).leColor([UIColor colorWithRed:0.0879 green:0.6668 blue:0.079 alpha:1.0]).leAutoLayout.leType;
     UIView *split=[UIView new].leSuperView(BG).leRelativeView(autoLayoutLabel).leAnchor(LEAnchorOutsideBottomCenter).leOffset(CGPointMake(0, LELayoutSideSpace)).leBackground(LEColorBlack).leSize(CGSizeMake(BG.bounds.size.width-LELayoutSideSpace, 1)).leAutoLayout;
     UIButton *btnLeft=[UIButton new].leSuperView(BG).leRelativeView(split).leAnchor(LEAnchorOutsideBottomLeft).leOffset(CGPointMake(LELayoutSideSpace, LELayoutSideSpace)).leBackgroundImage([LEColorBlue leImageStrechedFromSizeOne]).leBackgroundImageHighlighted([LEColorMask leImageStrechedFromSizeOne]).leColor(LEColorWhite).leHighlightedColor(LEColorTextGray).leText(@"左侧按钮追加").leTapEvent(@selector(onClickForAppenddingPathComponent),self).leAutoLayout.leType;
@@ -387,24 +405,11 @@ LEUIFramework，主要的用法是在新建视图时确定好其父视图，相�
 2）、相对位置LEAnchors
 
 ```
-相对位置参考物为父视图时：用9宫格法
-上左  上中  上右    
-左中  中间  右中
-下左  下中  下右
-相对位置参考物为父视图中的某一子视图时：
-
-角（Outside1）          角（Outside2）
-1 上左  上中  上右 2
-_______________
-左上|               |右上
-|               |
-左中|               |右中
-|               |
-左下|               |右下
-———————————————
-3 下左  下中  下右  4
-角（Outside3）           角（Outside4）
+锚点说明：（粗体红色矩形表示父视图）
+1-蓝色字体部分表示参照视图为父视图的情况，使用九宫格的方式划分区域，因而共用9种停靠情况。
+2-黑色字体部分表示参照视图为父视图中的某一同级子视图。有12中停靠点+4个对角线延伸线上，共16种情况。
 ```
+![image](https://github.com/LarryEmerson/LEAllFrameworksGif/blob/master/LEAnchor.png)
 
 3）、快速初始化组件（1句话初始化）：UILabel，UIImageView，UIButton
 
@@ -445,24 +450,7 @@ _______________
 [![License](https://img.shields.io/cocoapods/l/LEFrameworks.svg?style=flat)](http://cocoapods.org/pods/LEFrameworks)
 [![Platform](https://img.shields.io/cocoapods/p/LEFrameworks.svg?style=flat)](http://cocoapods.org/pods/LEFrameworks)
 
-## Example
-
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
-
-## Requirements
-
-## Installation
-
-LEFrameworks is available through [CocoaPods](http://cocoapods.org). To install
-it, simply add the following line to your Podfile:
-
-```ruby
-
-platform :ios, '7.0'
-target "ProjectName” do 
-pod "LEFrameworks"
-end 
-```
+ 
 
 ## Author
 

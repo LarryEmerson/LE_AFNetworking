@@ -200,16 +200,26 @@
     }
 }
 -(void) leOnReloadTableViewForAppendedDataSource{
-    if(self.leCellCountAppended!=self.leItemsArray.count){
-        //使用insertRowsAtIndexPaths，在网络延迟严重的情况下容易出现 Assertion failure in -[xxx _endCellAnimationsWithContext:]。目前退回使用reloaddata
-        //        NSMutableArray *insertIndexPaths = [[NSMutableArray alloc] init];
-        //        NSInteger section=[self leNumberOfSections]>1?[self leNumberOfSections]-1:0;
-        //        for (int ind = 0; ind < self.leCellCountAppended; ind++) {
-        //            NSIndexPath *newPath =  [NSIndexPath indexPathForRow:self.leItemsArray.count-self.leCellCountAppended+ind inSection:section];
-        //            [insertIndexPaths addObject:newPath];
-        //        }
-        //        [self insertRowsAtIndexPaths:insertIndexPaths withRowAnimation:UITableViewRowAnimationNone];
-        [self reloadData];
+//    if(self.leCellCountAppended!=self.leItemsArray.count){
+//        //使用insertRowsAtIndexPaths，在网络延迟严重的情况下容易出现 Assertion failure in -[xxx _endCellAnimationsWithContext:]。目前退回使用reloaddata
+//        //        NSMutableArray *insertIndexPaths = [[NSMutableArray alloc] init];
+//        //        NSInteger section=[self leNumberOfSections]>1?[self leNumberOfSections]-1:0;
+//        //        for (int ind = 0; ind < self.leCellCountAppended; ind++) {
+//        //            NSIndexPath *newPath =  [NSIndexPath indexPathForRow:self.leItemsArray.count-self.leCellCountAppended+ind inSection:section];
+//        //            [insertIndexPaths addObject:newPath];
+//        //        }
+//        //        [self insertRowsAtIndexPaths:insertIndexPaths withRowAnimation:UITableViewRowAnimationNone];
+//        [self reloadData];
+//    }
+#pragma mark TODO 20161108 这里的条件应该修改为self.leCellCountAppended>0
+    if(self.leCellCountAppended>0){
+        NSMutableArray *insertIndexPaths = [[NSMutableArray alloc] init];
+        NSInteger section=[self leNumberOfSections]>1?[self leNumberOfSections]-1:0;
+        for (int ind = 0; ind < self.leCellCountAppended; ind++) {
+            NSIndexPath *newPath =  [NSIndexPath indexPathForRow:self.leItemsArray.count-self.leCellCountAppended+ind inSection:section];
+            [insertIndexPaths addObject:newPath];
+        }
+        [self insertRowsAtIndexPaths:insertIndexPaths withRowAnimation:UITableViewRowAnimationNone];
     }
 }
 -(void) leOnStopBottomRefresh{}

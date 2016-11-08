@@ -29,7 +29,18 @@
 @property (nonatomic,readwrite) NSURLSessionConfiguration *leSessionConfiguration;
 @property (nonatomic,readwrite) NSFileManager *leFileManager;
 @property (nonatomic) NSString *downloadedFilePathDirectory;
+/** 所有下载器的内存缓存 */
+@property (nonatomic) NSMutableDictionary *leDownloaderCache;
 @end
+
+@interface LEResumeBrokenDownload ()
+@property (nonatomic) id<LEResumeBrokenDownloadDelegate> curDelegate;
+@property (nonatomic, readwrite) LEResumeBrokenDownloadState leDownloadState;
+@property (nonatomic, readwrite) NSString *leIdentifier;
+@property (nonatomic) NSString *curURL;
+@property (nonatomic) NSString *curDownloadTempFilePath;
+@end
+
 @implementation LEResumeBrokenDownloadManager
 static LEResumeBrokenDownloadManager *_instance;
 + (instancetype)allocWithZone:(struct _NSZone *)zone{
@@ -50,6 +61,7 @@ static LEResumeBrokenDownloadManager *_instance;
         _instance.leSessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
         _instance.leSessionManager = [[AFURLSessionManager alloc] initWithSessionConfiguration:_instance.leSessionConfiguration];
         [_instance.leSessionManager.reachabilityManager startMonitoring];
+        _instance.leDownloaderCache=[NSMutableDictionary new];
     });
     return _instance;
 }
@@ -57,6 +69,12 @@ static LEResumeBrokenDownloadManager *_instance;
     return _instance;
 }
 -(void) leReleaseManager{
+    for (LEResumeBrokenDownload *downloader in _instance.leDownloaderCache) {
+        if(downloader.leDownloadState==LEResumeBrokenDownloadStateDownloading){
+            [downloader lePauseDownload];
+        }
+    }
+    [_instance.leDownloaderCache removeAllObjects];
     [_instance.leSessionManager.reachabilityManager stopMonitoring];
     _instance.leSessionManager=nil;
 }
@@ -90,15 +108,28 @@ static LEResumeBrokenDownloadManager *_instance;
         }
     }
 }
+-(LEResumeBrokenDownload *) leDownloadWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate URL:(NSString *) url{
+    LEResumeBrokenDownload *downloader=[self.leDownloaderCache objectForKey:url];
+    if(downloader){
+        downloader.curDelegate=delegate;
+        downloader.leDownloadState=downloader.leDownloadState;
+    }else{
+        downloader=[[LEResumeBrokenDownload alloc] initWithDelegate:delegate Identifier:nil];
+        [downloader leDownloadWithURL:url];
+        [self.leDownloaderCache setObject:downloader forKey:url];
+    }
+    return downloader;
+}
+-(BOOL) leIsDownloadExisted:(NSString *) url{
+    LEResumeBrokenDownload *download= [self.leDownloaderCache objectForKey:url];
+    return download&&download.curDelegate;
+}
+-(LEResumeBrokenDownload *) leGetDownloadWithUrl:(NSString *) url{
+    return [self.leDownloaderCache objectForKey:url];
+}
 @end
 
-@interface LEResumeBrokenDownload ()
-@property (nonatomic) id<LEResumeBrokenDownloadDelegate> curDelegate;
-@property (nonatomic, readwrite) LEResumeBrokenDownloadState leDownloadState;
-@property (nonatomic, readwrite) NSString *leIdentifier;
-@property (nonatomic) NSString *curURL;
-@property (nonatomic) NSString *curDownloadTempFilePath;
-@end
+
 @implementation LEResumeBrokenDownload{
     AFURLSessionManager *sessionManager;//不可以直接调用sessionManager.reachabilityManager，原因是自定义的sessionManager未启用reachabilityManager
     NSURLSessionDownloadTask *downloadTask;
@@ -147,7 +178,7 @@ static LEResumeBrokenDownloadManager *_instance;
 -(id) initWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate Identifier:(NSString *) identifier SessionConfiguration:(NSURLSessionConfiguration *) config{
     self=[super init];
     self.curDelegate=delegate;
-    self.self.leIdentifier=identifier;
+    self.leIdentifier=identifier;
     curDownloadedFilePath=[LEResumeBrokenDownloadManager sharedInstance].downloadedFilePathDirectory;
     if(config){
         sessionManager=[[AFURLSessionManager alloc] initWithSessionConfiguration:config];
@@ -158,6 +189,12 @@ static LEResumeBrokenDownloadManager *_instance;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notificationFromLEResumeBrokenDownloadManager:) name:LEAllowNetworkReachViaWWAN object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notificationFromLEResumeBrokenDownloadManager:) name:LEPauseDownloadWhenSwitchedToWWAN object:nil];
     return self;
+}
+-(void) leRelease{
+    if(self.leDownloadState==LEResumeBrokenDownloadStateDownloading){
+        [self lePauseDownload];
+    }
+    self.curDelegate=nil;
 }
 -(void) dealloc{
     [[NSNotificationCenter defaultCenter] removeObserver:self name:LEAllowNetworkReachViaWWAN object:nil];
@@ -329,7 +366,7 @@ static LEResumeBrokenDownloadManager *_instance;
     if(self.leDownloadState==LEResumeBrokenDownloadStateDownloading||self.leDownloadState==LEResumeBrokenDownloadStateCompleted){
         return;
     }
-    if(!self.curURL||self.curURL.length==0||downloadTask){
+    if(!self.curURL||self.curURL.length==0){
         NSLog(@"请检查url是否已经正确设置，如果url无误则建议断点调试downloadTask");
         return;
     }
@@ -358,7 +395,7 @@ static LEResumeBrokenDownloadManager *_instance;
 }
 -(void) onDownloadProgressChanged:(float) downloadProgress{
     dispatch_async(dispatch_get_main_queue(), ^{
-        if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leDownloadProgress:Identifier:)]){
+        if(self.curDelegate&&[self.curDelegate respondsToSelector:@selector(leDownloadProgress:Identifier:)]){  
             [self.curDelegate leDownloadProgress:downloadProgress Identifier:self.self.leIdentifier];
         }
     });

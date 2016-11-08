@@ -8,6 +8,7 @@
 
 #import "ViewController.h"
 #import "LE_AFNetworkings.h"
+#import "TestDownloader.h"
 //数据模型的类可以使用工具JsonToObjCClassFile 一键生成。https://github.com/LarryEmerson/JsonToObjCClassFile
 @interface DM_Test_Images :LE_DataModel
 @property (nonatomic , strong) NSNumber              * timestamp;
@@ -60,19 +61,26 @@
     view=[[LEBaseView alloc] initWithViewController:self];
     LEBaseNavigation *navi=[[LEBaseNavigation alloc] initWithDelegate:self ViewController:self SuperView:view Offset:LEStatusBarHeight BackgroundImage:[LEColorWhite leImageStrechedFromSizeOne] TitleColor:LEColorTextBlack LeftItemImage:nil];
     [navi leSetNavigationTitle:@"LE_AFNetworking"];
-    [navi leSetRightNavigationItemWith:@"测试" Image:nil];
+    [navi leSetRightNavigationItemWith:@"测试断点下载" Image:nil];
     
     NSString *documentsDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
     NSString *dataPath = [documentsDirectory stringByAppendingPathComponent:@"pdfspath"];
     if (![[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
         [[NSFileManager defaultManager] createDirectoryAtPath:dataPath withIntermediateDirectories:YES attributes:nil error:nil];
     }
-
+    [self onTestLE_AFNetworking];
 }
 
 -(void) leNavigationRightButtonTapped{
 //    [self onTestLE_AFNetworking];
-    [self onTestResumeBrokenDownload];
+//    [self onTestResumeBrokenDownload];
+    [self leThroughNavigationAnimatedPush:[TestDownloader new]];
+    NSString *documentsDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+    NSString *dataPath = [documentsDirectory stringByAppendingPathComponent:@"pdfspath"];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
+        [[NSFileManager defaultManager] createDirectoryAtPath:dataPath withIntermediateDirectories:NO attributes:nil error:nil];
+    }
+    [[LEResumeBrokenDownloadManager sharedInstance] leSwitchPathDirectoryFromCacheToDocument:YES SubPathComponent:dataPath.lastPathComponent];
 }
 //===========================测试 LEResumeBrokenDownload
 -(void) onTestResumeBrokenDownloadInits{
@@ -126,21 +134,14 @@
         curDownloader=[[LEResumeBrokenDownload alloc] initWithDelegate:self Identifier:nil];
         [curDownloader leDownloadWithURL:[NSString stringWithFormat:@"http://120.25.226.186:32812/resources/videos/minion_%02d.mp4",rnd]];
         
-//        LEResumeBrokenDownload *d=[[LEResumeBrokenDownload alloc] ini];
-//        LEResumeBrokenDownload *downloader=[[LEResumeBrokenDownload alloc] initWithDelegate:self Identifier:nil URL:@""];//快速初始化，初始化后立即下载
-//        [downloader lePauseDownload];//暂停
-//        [downloader leResumeDownload];//继续
-//        if(downloader.leDownloadState==LEResumeBrokenDownloadStateCompleted){//完成下载后打开文件
-//            NSString *path=[downloader leDownloadedFilePath];
-//            NSLog(@"open file at %@",path);
-//        }
+        LELogObject(@"准备就绪")
     }else{ 
         switch (curDownloader.leDownloadState) {
             case LEResumeBrokenDownloadStateDownloading:
                 [curDownloader lePauseDownload];
                 break;
             case LEResumeBrokenDownloadStateCompleted:
-                LELog(@"open")
+                LELog(@"open %@",curDownloader.leDownloadedFilePath)
                 break;
             case LEResumeBrokenDownloadStateNone:
             case LEResumeBrokenDownloadStateWaiting:

@@ -18,6 +18,7 @@
 #import <Foundation/Foundation.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 #import "AFNetworking.h" 
+@class LEResumeBrokenDownload;
 /** 下载状态*/
 typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
     LEResumeBrokenDownloadStateNone =0,                     //0 default 初始状态
@@ -25,8 +26,8 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
     LEResumeBrokenDownloadStateDownloading,                 //2 downloading 下载中
     LEResumeBrokenDownloadStatePausedManually,              //3 paused manually 手动暂停
     LEResumeBrokenDownloadStatePausedAutomatically,         //4 paused 自动暂停触发情况：网络断开、设置禁用蜂窝、设置了切换蜂窝自动暂停，监听到蜂窝开启且设置了禁用蜂窝或切换蜂窝自动暂停、下载失败
-    LEResumeBrokenDownloadStateCompleted,                   //5 download 下载完成
-    LEResumeBrokenDownloadStateFailed,                      //6 download 下载失败 
+    LEResumeBrokenDownloadStateCompleted,                   //5 download completed 下载完成
+    LEResumeBrokenDownloadStateFailed,                      //6 download failed 下载失败
 };
 
 #pragma mark Protocol
@@ -56,6 +57,7 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
  * @brief 当前下载状态切换时回调，主要用于UI状态更新 identifier来源于任务初始化用于区分多个任务。
  */
 -(void) leOnDownloadStateChanged:(LEResumeBrokenDownloadState) state Identifier:(NSString *) identifier;
+
 @end
 
 #pragma mark Download Manager
@@ -96,6 +98,13 @@ typedef NS_ENUM(NSUInteger, LEResumeBrokenDownloadState) {
  * @brief manager必要的释放（停止网络状态监测）
  */
 -(void) leReleaseManager;
+
+/** 该接口生成的下载器由manager管理，避免重复下载且相同url对应唯一一个下载器，回调使用最新的delegate */
+-(LEResumeBrokenDownload *) leDownloadWithDelegate:(id<LEResumeBrokenDownloadDelegate>) delegate URL:(NSString *) url;
+/** 是否存在url对应的下载器*/
+-(BOOL) leIsDownloadExisted:(NSString *) url;
+/** 根据url获取download*/
+-(LEResumeBrokenDownload *) leGetDownloadWithUrl:(NSString *) url;
 @end
 
 #pragma mark Downloader

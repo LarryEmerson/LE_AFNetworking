@@ -14,6 +14,7 @@
 		8080036D1D2BD99D000A926F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8080036B1D2BD99D000A926F /* Main.storyboard */; };
 		8080036F1D2BD99D000A926F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8080036E1D2BD99D000A926F /* Assets.xcassets */; };
 		808003721D2BD99D000A926F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 808003701D2BD99D000A926F /* LaunchScreen.storyboard */; };
+		80D6D3791DD1610700EDE1CB /* TestDownloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 80D6D3781DD1610700EDE1CB /* TestDownloader.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +38,8 @@
 		8080036E1D2BD99D000A926F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		808003711D2BD99D000A926F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		808003731D2BD99D000A926F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		80D6D3771DD1610700EDE1CB /* TestDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestDownloader.h; sourceTree = "<group>"; };
+		80D6D3781DD1610700EDE1CB /* TestDownloader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestDownloader.m; sourceTree = "<group>"; };
 		86CFD5CD0719F61874D5CDED /* LE_AFNetworking.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LE_AFNetworking.podspec; path = ../LE_AFNetworking.podspec; sourceTree = "<group>"; };
 		C41B45B23D43FAF959BFC29E /* Pods-LE_AFNetworking_Test.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LE_AFNetworking_Test.release.xcconfig"; path = "Pods/Target Support Files/Pods-LE_AFNetworking_Test/Pods-LE_AFNetworking_Test.release.xcconfig"; sourceTree = "<group>"; };
 		D2D3A13DD61487E945833604 /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
@@ -123,6 +126,8 @@
 				808003661D2BD99D000A926F /* AppDelegate.m */,
 				808003681D2BD99D000A926F /* ViewController.h */,
 				808003691D2BD99D000A926F /* ViewController.m */,
+				80D6D3771DD1610700EDE1CB /* TestDownloader.h */,
+				80D6D3781DD1610700EDE1CB /* TestDownloader.m */,
 				8080036B1D2BD99D000A926F /* Main.storyboard */,
 				8080036E1D2BD99D000A926F /* Assets.xcassets */,
 				808003701D2BD99D000A926F /* LaunchScreen.storyboard */,
@@ -282,7 +287,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -294,6 +299,7 @@
 			files = (
 				8080036A1D2BD99D000A926F /* ViewController.m in Sources */,
 				808003671D2BD99D000A926F /* AppDelegate.m in Sources */,
+				80D6D3791DD1610700EDE1CB /* TestDownloader.m in Sources */,
 				808003641D2BD99D000A926F /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

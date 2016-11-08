@@ -330,6 +330,10 @@
     msgForSomebody=@"";
 }
 #pragma mark Responding to keyboard events
+-(void) dealloc{
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
+}
 - (void)keyboardWillShow:(NSNotification *)notification {
     isKeyboardShowing=YES;
     NSDictionary *userInfo = [notification userInfo];
@@ -520,8 +524,7 @@
     }
 }
 
-/*
- // Only override drawRect: if you perform custom drawing.
+/** // Only override drawRect: if you perform custom drawing.
  // An empty implementation adversely affects performance during animation.
  - (void)drawRect:(CGRect)rect
  {

@@ -12,9 +12,9 @@
     float leSelfHeight;
 }
 -(id) initWithDelegate:(id<LETableViewCellSelectionDelegate>)delegate EnableGesture:(NSNumber *)gesture{
-    self=[super initWithFrame:CGRectMake(0, 0, LESCREEN_WIDTH, 0)];
-    self.leSelectionDelegate=delegate;
     leSelfHeight=LEDefaultCellHeight;
+    self=[super initWithFrame:CGRectMake(0, 0, LESCREEN_WIDTH, leSelfHeight)];
+    self.leSelectionDelegate=delegate;
     [self leExtraInits];
     if(![gesture boolValue]){
         self.leSelfTapEvent=[UIButton new].leSuperView(self).leEdgeInsects(UIEdgeInsetsZero).leAutoLayout.leType;
