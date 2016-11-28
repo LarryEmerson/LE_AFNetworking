@@ -7,51 +7,12 @@
 //
 
 #import "LE_AFNetworking.h"
-#import <CommonCrypto/CommonDigest.h>
 #import <objc/runtime.h>
 
 @interface LE_AFNetworking ()
 -(int) getNetworkCounter;
 @end
 
-@implementation NSString(ExtensionAFN)
--(id)leJSONValue {
-    NSData* data = [self dataUsingEncoding:NSUTF8StringEncoding];
-    __autoreleasing NSError* error = nil;
-    id result = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
-    if (error != nil) return nil;
-    return result;
-}
--(NSString *)leMd5{
-    const char *cStr = [self UTF8String];
-    unsigned char result[16];
-    CC_MD5(cStr, (CC_LONG)strlen(cStr), result); // This is the leMd5 call
-    return [NSString stringWithFormat:
-            @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-            result[0], result[1], result[2], result[3],
-            result[4], result[5], result[6], result[7],
-            result[8], result[9], result[10], result[11],
-            result[12], result[13], result[14], result[15]
-            ];
-}
--(NSString *)leMd5WithSalt:(NSString *) salt{
-    return [[[self leMd5] stringByAppendingString:salt] leMd5];
-}
--(NSString *)leBase64Encoder{
-    NSData *data=[self dataUsingEncoding:NSUTF8StringEncoding];
-    return [data base64EncodedStringWithOptions:0];
-}
--(NSString *)leBase64Decoder{
-    NSData *nsdataFromBase64String = [[NSData alloc] initWithBase64EncodedString:self options:0];
-    return [[NSString alloc] initWithData:nsdataFromBase64String encoding:NSUTF8StringEncoding];
-}
-@end
-
-@implementation NSObject (ExtensionAFN)
--(NSString *) leObjToJSONString{
-    return [LE_AFNetworking leJSONStringWithObject:self];
-}
-@end
 @interface LE_AFNetworkingSettings ()
 @property (nonatomic, readwrite) int               leRequestCounter;
 @property (nonatomic, readwrite) NSString          *leApi;
@@ -707,7 +668,7 @@ static int networkCounter;
             NSString *destMethodName = [NSString stringWithFormat:@"set%@:",[keyName capitalizedString]]; //capitalizedString返回每个单词首字母大写的字符串（每个单词的其余字母转换为小写）
             SEL destMethodSelector = NSSelectorFromString(destMethodName);
             if ([entity respondsToSelector:destMethodSelector]) {
-                SuppressPerformSelectorLeakWarning(
+                LESuppressPerformSelectorLeakWarning(
                                                    [entity performSelector:destMethodSelector withObject:[dict objectForKey:keyName]];
                                                    );
             }
@@ -729,7 +690,7 @@ static int networkCounter;
         //      LELog(@"%@",[NSString stringWithUTF8String:propertyName]);
         //      LELog(@"%@",[NSString stringWithUTF8String:attributeName]);
         id value =nil;
-        SuppressPerformSelectorLeakWarning(
+        LESuppressPerformSelectorLeakWarning(
                                            value=[entity performSelector:NSSelectorFromString([NSString stringWithUTF8String:propertyName])];
                                            );
         if(value ==nil){

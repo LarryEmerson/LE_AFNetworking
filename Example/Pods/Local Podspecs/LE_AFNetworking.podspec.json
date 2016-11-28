@@ -1,6 +1,6 @@
 {
   "name": "LE_AFNetworking",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "summary": "在AFNetworingd的基础上做的进一步封装",
   "homepage": "https://github.com/LarryEmerson/LE_AFNetworking",
   "license": {
@@ -12,7 +12,7 @@
   },
   "source": {
     "git": "https://github.com/LarryEmerson/LE_AFNetworking.git",
-    "tag": "0.3.2"
+    "tag": "0.3.3"
   },
   "platforms": {
     "ios": "7.0"
@@ -34,10 +34,10 @@
     "AFNetworking": [
       "~> 3"
     ],
-    "LEFrameworks": [
+    "FMDB": [
 
     ],
-    "FMDB": [
+    "LEFoundation": [
 
     ]
   }

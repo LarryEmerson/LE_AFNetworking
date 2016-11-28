@@ -9,6 +9,8 @@
 #import "ViewController.h"
 #import "LE_AFNetworkings.h"
 #import "TestDownloader.h"
+#import <LEUIMaker/LEUIMaker.h>
+
 //数据模型的类可以使用工具JsonToObjCClassFile 一键生成。https://github.com/LarryEmerson/JsonToObjCClassFile
 @interface DM_Test_Images :LE_DataModel
 @property (nonatomic , strong) NSNumber              * timestamp;
@@ -42,10 +44,10 @@
 //#define DownloadTest @"http://120.25.226.186:32812/resources/videos/minion_01.mp4"
 //#define DownloadTest @"http://occqxazgx.bkt.clouddn.com/lsldOaaukGErLH7nb1Of1PFu9VjE"
 #define DownloadTest @"http://files.git.oschina.net/group1/M00/00/7B/PaAvDFf8q9-AcIKkAXxIN9d8yJg332.pdf"
-@interface ViewController ()<LE_AFNetworkingDelegate,LENavigationDelegate,LEResumeBrokenDownloadDelegate>
+@interface ViewController ()<LE_AFNetworkingDelegate,LEResumeBrokenDownloadDelegate>
 @end
 @implementation ViewController{
-    LEBaseView *view;
+    UIView *view;
     //
     LEResumeBrokenDownload *curDownloader;
     UISwitch *switchWWAN;
@@ -58,11 +60,10 @@
     [[LE_AFNetworking sharedInstance] leSetEnableDebug:YES];
     [[LE_AFNetworking sharedInstance] leSetEnableResponseDebug:YES];
     [[LE_AFNetworking sharedInstance] leSetEnableResponseWithJsonString:YES];
-    view=[[LEBaseView alloc] initWithViewController:self];
-    LEBaseNavigation *navi=[[LEBaseNavigation alloc] initWithDelegate:self ViewController:self SuperView:view Offset:LEStatusBarHeight BackgroundImage:[LEColorWhite leImageStrechedFromSizeOne] TitleColor:LEColorTextBlack LeftItemImage:nil];
-    [navi leSetNavigationTitle:@"LE_AFNetworking"];
-    [navi leSetRightNavigationItemWith:@"测试断点下载" Image:nil];
-    
+
+    view=[[UIView alloc] initWithFrame:CGRectMake(0, 20, LESCREEN_WIDTH, LESCREEN_HEIGHT-20-44)];
+    [self.view addSubview:view];
+    [UILabel new].leAddTo(self.view).leAnchor(LEI_TR).leLeftAlign.leTouchEvent(@selector(leNavigationRightButtonTapped),self).leText(@"测试断点下载");
     NSString *documentsDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
     NSString *dataPath = [documentsDirectory stringByAppendingPathComponent:@"pdfspath"];
     if (![[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
@@ -74,7 +75,7 @@
 -(void) leNavigationRightButtonTapped{
 //    [self onTestLE_AFNetworking];
 //    [self onTestResumeBrokenDownload];
-    [self leThroughNavigationAnimatedPush:[TestDownloader new]];
+    [self.navigationController pushViewController:[TestDownloader new] animated:YES];
     NSString *documentsDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
     NSString *dataPath = [documentsDirectory stringByAppendingPathComponent:@"pdfspath"];
     if (![[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
@@ -97,9 +98,9 @@
     labelProgress=[UILabel new];
     switchWWAN=[UISwitch new];
     switchPause=[UISwitch new];
-    [view.leViewBelowCustomizedNavigation addSubview:labelProgress];
-    [view.leViewBelowCustomizedNavigation addSubview:switchWWAN];
-    [view.leViewBelowCustomizedNavigation addSubview:switchPause];
+    [view addSubview:labelProgress];
+    [view addSubview:switchWWAN];
+    [view addSubview:switchPause];
     [switchWWAN setFrame:CGRectMake(0, 0, switchWWAN.bounds.size.width, switchWWAN.bounds.size.height)];
     [switchPause setFrame:CGRectMake(switchWWAN.bounds.size.width, 0, switchPause.bounds.size.width, switchPause.bounds.size.height)];
     [labelProgress setFrame:CGRectMake(switchWWAN.bounds.size.width+switchPause.bounds.size.width, 0, LESCREEN_WIDTH-switchWWAN.bounds.size.width-switchPause.bounds.size.width, switchWWAN.bounds.size.height)];
@@ -108,10 +109,8 @@
     [LEResumeBrokenDownloadManager sharedInstance].leAllowNetworkReachViaWWAN=switchWWAN.on;
     [LEResumeBrokenDownloadManager sharedInstance].lePauseDownloadWhenSwitchedToWWAN=switchPause.on;
     LELog(@"WWAN:%@ , Pause:%@",switchWWAN.on?@"ON":@"OFF",switchPause.on?@"ON":@"OFF")
-    UILabel *labelWWAN=[UILabel new].leSuperView(view.leViewBelowCustomizedNavigation).leAnchor(LEAnchorOutsideBottomCenter).leRelativeView(switchWWAN).leAutoLayout.leType;
-    [labelWWAN.leText(@"WWAN").leAlignment(NSTextAlignmentCenter) leLabelLayout];
-    UILabel *labelPause=[UILabel new].leSuperView(view.leViewBelowCustomizedNavigation).leAnchor(LEAnchorOutsideBottomCenter).leRelativeView(switchPause).leAutoLayout.leType;
-    [labelPause.leText(@"Pause").leAlignment(NSTextAlignmentCenter) leLabelLayout];
+    [UILabel new].leAddTo(view).leAnchor(LEOutsideBottomCenter).leRelativeTo(switchWWAN).leText(@"WWAN").leAlignment(NSTextAlignmentCenter);
+    [UILabel new].leAddTo(view).leAnchor(LEOutsideBottomCenter).leRelativeTo(switchPause).leText(@"Pause").leAlignment(NSTextAlignmentCenter);
     
 }
 -(void) onDownloadSwitch:(UISwitch *) swi{

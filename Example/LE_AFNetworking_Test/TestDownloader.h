@@ -6,8 +6,8 @@
 //  Copyright © 2016年 LarryEmerson. All rights reserved.
 //
 
-#import <LEFrameworks/LEFrameworks.h>
 #import "LE_AFNetworkings.h"
-@interface TestDownloader : LEBaseViewController
+#import <UIKit/UIKit.h>
+@interface TestDownloader : UIViewController
 
 @end

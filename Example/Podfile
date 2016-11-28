@@ -1,5 +1,5 @@
 use_frameworks!
 target 'LE_AFNetworking_Test' do
   pod 'LE_AFNetworking', :path => '../'
-  
+  pod 'LEUIMaker'
 end

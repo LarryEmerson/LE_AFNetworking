@@ -86,12 +86,14 @@ strip_invalid_archs() {
 if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_framework "$BUILT_PRODUCTS_DIR/AFNetworking/AFNetworking.framework"
   install_framework "$BUILT_PRODUCTS_DIR/FMDB/FMDB.framework"
-  install_framework "$BUILT_PRODUCTS_DIR/LEFrameworks/LEFrameworks.framework"
+  install_framework "$BUILT_PRODUCTS_DIR/LEFoundation/LEFoundation.framework"
+  install_framework "$BUILT_PRODUCTS_DIR/LEUIMaker/LEUIMaker.framework"
   install_framework "$BUILT_PRODUCTS_DIR/LE_AFNetworking/LE_AFNetworking.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "$BUILT_PRODUCTS_DIR/AFNetworking/AFNetworking.framework"
   install_framework "$BUILT_PRODUCTS_DIR/FMDB/FMDB.framework"
-  install_framework "$BUILT_PRODUCTS_DIR/LEFrameworks/LEFrameworks.framework"
+  install_framework "$BUILT_PRODUCTS_DIR/LEFoundation/LEFoundation.framework"
+  install_framework "$BUILT_PRODUCTS_DIR/LEUIMaker/LEUIMaker.framework"
   install_framework "$BUILT_PRODUCTS_DIR/LE_AFNetworking/LE_AFNetworking.framework"
 fi

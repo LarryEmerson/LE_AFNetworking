@@ -9,14 +9,10 @@
 #import <Foundation/Foundation.h>
 #import <AFNetworking/AFNetworking.h>
 #import <AFNetworking/AFURLResponseSerialization.h>
-//
 #import "LE_AFNetworking.h"
 #import "LE_DataManager.h"
-// 
-#import <Foundation/Foundation.h>
 #import <Foundation/NSURLRequest.h>
-#import <LEFrameworks/LEAppMessageDelegate.h>
-
+#import <LEFoundation/LEFoundation.h>
 #define mark Attention 注意
 //  leSetServerHost 用于设置全局服务器地址
 //  leMd5Salt leMd5加密需要的
@@ -25,13 +21,6 @@
 //  enableResponseDebug 回调数据debug
 //  enableResponseWithJsonString 回调数据是否包含JSon字符串
 
-#define SuppressPerformSelectorLeakWarning(Stuff) \
-do { \
-_Pragma("clang diagnostic push") \
-_Pragma("clang diagnostic ignored \"-Warc-performSelector-leaks\"") \
-Stuff; \
-_Pragma("clang diagnostic pop") \
-} while (0)
 //=======================Duration======================
 #define LENetworkDuration       0
 #define LENetworkDuration_2s    2
@@ -49,15 +38,6 @@ _Pragma("clang diagnostic pop") \
 #define LENetworkDuration_5h    60*60*5
 #define LENetworkDuration_12h   60*60*12
 #define LENetworkDuration_24h   60*60*24
-
-
-#define LELogFunc                   fprintf(stderr,"=> FUNC: %s\n",__FUNCTION__);
-#define LELogObject(...)            fprintf(stderr,"=> FUNC: %s %s\n",__FUNCTION__,[[NSString stringWithFormat:@"%@", ##__VA_ARGS__] UTF8String]);
-#define LELogInt(...)               fprintf(stderr,"=> FUNC: %s %s\n",__FUNCTION__,[[NSString stringWithFormat:@"%d", ##__VA_ARGS__] UTF8String]);
-#define LELogStringAngInt(...)      fprintf(stderr,"=> FUNC: %s %s\n",__FUNCTION__,[[NSString stringWithFormat:@"%@ : %d", ##__VA_ARGS__] UTF8String]);
-#define LELogTwoObjects(...)        fprintf(stderr,"=> FUNC: %s %s\n",__FUNCTION__,[[NSString stringWithFormat:@"@@\n-->%@\n-->%@", ##__VA_ARGS__] UTF8String]);
-#define LELog(FORMAT, ...)          fprintf(stderr,"=> (Line:%d) %s %s\n",__LINE__,__FUNCTION__,[[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String]);
-
 
 typedef NS_ENUM(NSInteger, LERequestType) {
     LERequestTypeGet      = 0,
@@ -77,22 +57,7 @@ typedef NS_ENUM(NSInteger, LERequestType) {
 #define LEKeyOfResponseErrorno      @"errorno"
 #define LEKeyOfResponseArray        @"arraycontent"
 #define LEKeyOfResponseAsJSON       @"LEKeyOfResponseAsJSON"
-#define LEStatusCode200             200
-#define LEIntToString(num)          [NSString stringWithFormat:@"%d", num]
-#define LEIntegerToString(num)      [NSString stringWithFormat:@"%zd", num]
-#define LEFloatToString(num)          [NSString stringWithFormat:@"%f", num]
-#define LENumberToString(num)       [NSString stringWithFormat:@"%@", num]
-
-@interface NSString (ExtensionAFN)
--(id)           leJSONValue;
--(NSString *)   leMd5;
--(NSString *)   leMd5WithSalt:(NSString *) salt;
--(NSString *)   leBase64Encoder;
--(NSString *)   leBase64Decoder;
-@end
-@interface NSObject (ExtensionAFN)
--(NSString*)    leObjToJSONString;
-@end  
+#define LEStatusCode200             200 
 
 @class LE_AFNetworkingRequestObject;
 @protocol LE_AFNetworkingDelegate <NSObject>

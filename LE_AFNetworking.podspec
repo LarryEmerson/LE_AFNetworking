@@ -25,6 +25,7 @@ s.libraries = "sqlite3", "c", "icucore", "z", "stdc++.6.0.9", "xml2"
 s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
 s.dependency "AFNetworking", "~> 3"
 #s.dependency "Qiniu"
-s.dependency "LEFrameworks"
+#s.dependency "LEFrameworks"
 s.dependency "FMDB"
+s.dependency 'LEFoundation'
 end
