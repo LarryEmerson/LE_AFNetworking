@@ -7,7 +7,9 @@
 //
 
 #import "LE_AFNetworkings.h"
+#import <LEFrameworks/LEFrameworks.h>
 #import <UIKit/UIKit.h>
-@interface TestDownloader : UIViewController
+@interface TestDownloader : LEBaseViewController
+
 
 @end

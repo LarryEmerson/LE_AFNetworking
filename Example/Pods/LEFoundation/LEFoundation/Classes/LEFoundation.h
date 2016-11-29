@@ -81,7 +81,7 @@ return _instace; \
 
 
 
-@interface NSObject (LEExtension)
+@interface NSObject (LEFoundation)
 /** 格式化为字符串 */
 -(NSString *) leStringValue;
 /**
@@ -93,7 +93,7 @@ return _instace; \
 /** 格式化为JSon数据 */
 -(NSString*)    leObjToJSONString;
 @end
-@interface NSString (LEExtension)
+@interface NSString (LEFoundation)
 /** 字符串长度Ascii */
 -(int)          leAsciiLength;
 /** 字符串映射类对象 */

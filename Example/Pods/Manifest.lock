@@ -17,17 +17,17 @@ PODS:
   - FMDB (2.6.2):
     - FMDB/standard (= 2.6.2)
   - FMDB/standard (2.6.2)
-  - LE_AFNetworking (0.3.3):
+  - LE_AFNetworking (0.3.4):
     - AFNetworking (~> 3)
     - FMDB
     - LEFoundation
-  - LEFoundation (0.1.0)
-  - LEUIMaker (0.1.1):
+  - LEFoundation (0.1.2)
+  - LEFrameworks (0.6.2):
     - LEFoundation
 
 DEPENDENCIES:
   - LE_AFNetworking (from `../`)
-  - LEUIMaker
+  - LEFrameworks
 
 EXTERNAL SOURCES:
   LE_AFNetworking:
@@ -36,10 +36,10 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
   FMDB: 854a0341b4726e53276f2a8996f06f1b80f9259a
-  LE_AFNetworking: bd7a369e90c388ff3b9ad6b66b00a842cd919353
-  LEFoundation: 9b10b67ef83c1d4c9dbafc3d5fb18fe1e14672a7
-  LEUIMaker: 33a3bb593ccf344c7629788939364bb98d7f19f8
+  LE_AFNetworking: f5db85e7c51b144c7913d2615cc45ddf4e5b6427
+  LEFoundation: 0ae39ec6fa64da7f670962345ec6e7323993e4ba
+  LEFrameworks: d7eda14ed3cef8f08b989562707a84e2c199b2c6
 
-PODFILE CHECKSUM: c93c8b7c9daa0bc6a9a81b31bd99eae0ad79508c
+PODFILE CHECKSUM: e18ade04bf291e5a5438aade1bca1dbadf3069d5
 
 COCOAPODS: 1.1.1

@@ -8,7 +8,7 @@
 
 #import "TestDownloader.h"
 
-/**
+ 
 
 
 static int Tags=1;
@@ -21,6 +21,7 @@ static int Tags=1;
     LEResumeBrokenDownload *curDownloader;
 }
 -(void) leExtraInits{
+    [self leSetCellHeight:LEDefaultCellHeight];
     self.tag=Tags++;
     labelIndex =[UILabel new].leSuperView(self).leAnchor(LEAnchorInsideLeftCenter).leOffset(CGPointMake(LELayoutSideSpace, 0)).leAutoLayout;
     labelProgress=[UILabel new].leSuperView(self).leRelativeView(labelIndex).leOffset(CGPointMake(LELayoutSideSpace, 0)).leAnchor(LEAnchorOutsideRightCenter).leAutoLayout;
@@ -106,6 +107,6 @@ static int Tags=1;
 }
 @end
  
- */
+ 
 @implementation TestDownloader
 @end

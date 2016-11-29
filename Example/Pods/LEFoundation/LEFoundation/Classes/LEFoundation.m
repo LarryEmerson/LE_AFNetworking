@@ -9,8 +9,7 @@
 #import "LEFoundation.h"
 #import <CommonCrypto/CommonDigest.h>
 
-
-@implementation NSObject (LEExtension)
+@implementation NSObject (LEFoundation)
 -(NSString *) leStringValue{
     return [NSString stringWithFormat:@"%@",self];
 }
@@ -92,7 +91,7 @@
 }
 @end
 
-@implementation NSString (LEExtension)
+@implementation NSString (LEFoundation)
 -(int) leAsciiLength{
     NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
     NSData* da = [self dataUsingEncoding:enc];
