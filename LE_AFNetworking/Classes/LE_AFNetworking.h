@@ -66,6 +66,10 @@ typedef NS_ENUM(NSInteger, LERequestType) {
 - (void) leRequest:(LE_AFNetworkingRequestObject *) request FailedWithStatusCode:(int) statusCode Message:(NSString *)message;
 @end
 
+@protocol LE_AFNetworkingServerIdentifierCheckDelegate <NSObject>
+- (void) leFailedCheckingServerIdentifier;
+@end
+
 @interface LE_AFNetworkingSettings : NSObject
 @property (nonatomic, readonly) int               leRequestCounter;
 @property (nonatomic, readonly) NSString          *leApi;
@@ -123,6 +127,9 @@ typedef NS_ENUM(NSInteger, LERequestType) {
 - (void)         leOnShowAppMessageWith:(NSString *) message;
 - (void)         leSetContentType:(NSSet *) type;
 - (void)         leSetStatusCode:(NSIndexSet *) status;
+- (void)         leSetServerIdentifierKey:(NSString *) identifierKey;
+- (void)         leSetServerIdentifier:(NSString *) identifier;
+- (void)         leSetServerIdentifierDelegate:(id<LE_AFNetworkingServerIdentifierCheckDelegate>) serverIdentifierDelegate;
 //GET
 - (BOOL)         leEnableDebug;
 - (BOOL)         leEnableResponseDebug;

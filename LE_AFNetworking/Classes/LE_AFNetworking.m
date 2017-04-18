@@ -13,6 +13,19 @@
 -(int) getNetworkCounter;
 @end
 
+@interface LE_AFNetworking ()
+@property (nonatomic) BOOL enableDebug;
+@property (nonatomic) BOOL enableResponseDebug;
+@property (nonatomic) BOOL enableResponseWithJsonString;
+@property (nonatomic) NSString *md5Salt;
+@property (nonatomic, weak) id<LEAppMessageDelegate> messageDelegate;
+@property (nonatomic, weak) id<LE_AFNetworkingServerIdentifierCheckDelegate> serverIdentifierDelegate;
+@property (nonatomic) NSString *serverIdentifier;
+@property (nonatomic) NSString *serverIdentifierKey;
+@property (nonatomic) NSSet *contentType;
+@property (nonatomic) NSIndexSet *statusCode;
+@end
+
 @interface LE_AFNetworkingSettings ()
 @property (nonatomic, readwrite) int               leRequestCounter;
 @property (nonatomic, readwrite) NSString          *leApi;
@@ -298,6 +311,8 @@
             NSDictionary *header=[res allHeaderFields];
             if(header&&[header objectForKey:LEKeyOfResponseCount]){
                 [response setObject:[header objectForKey:LEKeyOfResponseCount] forKey:LEKeyOfResponseCount];
+            }else{
+                [response setObject:@"0" forKey:LEKeyOfResponseCount];
             }
         }
         if([LE_AFNetworking sharedInstance].leEnableResponseWithJsonString){
@@ -307,6 +322,15 @@
             [response setObject:[self.leAfnetworkingSettings leGetKey] forKey:@"URL"];
         }
         [response setObject:[NSNumber numberWithInteger:[res statusCode]] forKey:LEKeyOfResponseStatusCode];
+        if([LE_AFNetworking sharedInstance].serverIdentifierKey&&[LE_AFNetworking sharedInstance].serverIdentifier){
+            NSString *objServerIdentifier=[[res allHeaderFields] objectForKey:[LE_AFNetworking sharedInstance].serverIdentifierKey];
+            if(!objServerIdentifier||![objServerIdentifier isEqualToString:[LE_AFNetworking sharedInstance].serverIdentifier]){
+                if([LE_AFNetworking sharedInstance].serverIdentifierDelegate&&[[LE_AFNetworking sharedInstance].serverIdentifierDelegate respondsToSelector:@selector(leFailedCheckingServerIdentifier)]){
+                    [[LE_AFNetworking sharedInstance].serverIdentifierDelegate leFailedCheckingServerIdentifier];
+                    [response setObject:@"1000000" forKey:LEKeyOfResponseStatusCode];
+                }
+            }
+        }
         if(response&&self.leAfnetworkingSettings.leCurDelegateArray){
             if((self.leAfnetworkingSettings.leRequestType==LERequestTypeGet||self.leAfnetworkingSettings.leRequestType==LERequestTypeHead)){
                 NSString *json=[LE_AFNetworking leJSONStringWithObject:response];
@@ -372,17 +396,18 @@
 }
 @end
 
-@interface LE_AFNetworking ()
-@property (nonatomic) BOOL enableDebug;
-@property (nonatomic) BOOL enableResponseDebug;
-@property (nonatomic) BOOL enableResponseWithJsonString;
-@property (nonatomic) NSString *md5Salt;
-@property (nonatomic) id<LEAppMessageDelegate> messageDelegate;
-@property (nonatomic) NSSet *contentType;
-@property (nonatomic) NSIndexSet *statusCode;
-@end
+
 @implementation LE_AFNetworking{
     NSMutableDictionary *afnetworkingCache;
+}
+- (void) leSetServerIdentifierKey:(NSString *) identifierKey{
+    self.serverIdentifierKey=identifierKey;
+}
+- (void) leSetServerIdentifier:(NSString *) identifier{
+    self.serverIdentifier=identifier;
+}
+- (void) leSetServerIdentifierDelegate:(id<LE_AFNetworkingServerIdentifierCheckDelegate>) delegate{
+    self.serverIdentifierDelegate=delegate;
 }
 -(void) leSetStatusCode:(NSIndexSet *) status{
     self.statusCode=status;

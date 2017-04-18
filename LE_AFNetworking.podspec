@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 s.name             = 'LE_AFNetworking'
-s.version          = '0.3.4'
+s.version          = '0.3.5'
 s.summary          = '在AFNetworingd的基础上做的进一步封装'
 
 s.homepage         = 'https://github.com/LarryEmerson/LE_AFNetworking'
