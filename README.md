@@ -1,5 +1,5 @@
 # LE_AFNetworking
-
+20170508 最新开发库LEUIMaker中已经整合了LE_AFNetworking的所有内容，并且对接口做了进一步升级，详见https://github.com/LarryEmerson/LEUIMaker （LENetwork） LE_AFNetworking不再更新维护, LEUIMaker持续更新中...
 ### #import "LE_AFNetworkings.h"
 ### LE_AFNetworking主要是针对于AFNetworking做了进一步的封装。
 
