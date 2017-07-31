@@ -19,6 +19,27 @@
 
 @implementation LEBaseTableViewCell{
     BOOL hasGesture;
+    BOOL isInited;
+}
+-(void) onSetSettings:(LETableViewCellSettings *) settings{
+    if(isInited)return;
+    isInited=YES;
+    self.leSelectionDelegate=settings.leSelectionDelegate;
+    hasGesture=settings.leGesture;
+    [self setFrame:CGRectMake(0, 0, LESCREEN_WIDTH, LEDefaultCellHeight)];
+    [self setBackgroundColor:LEColorWhite];
+    self.leHasBottomSplit=YES;
+    if(hasGesture){
+        self.leTapEffect=[[UIButton alloc] initWithAutoLayoutSettings:[[LEAutoLayoutSettings alloc] initWithSuperView:self EdgeInsects:UIEdgeInsetsZero]];
+        [self.leTapEffect setBackgroundImage:[LEColorMask2 leImageStrechedFromSizeOne] forState:UIControlStateHighlighted];
+        [self.leTapEffect addTarget:self action:@selector(onButtonTaped) forControlEvents:UIControlEventTouchUpInside];
+    }
+    [self leAdditionalInits];
+    [self initCellStyle];
+    if(self.leTapEffect){
+        [self addSubview:self.leTapEffect];
+    }
+    [self leAdditionalInitsForTopViews];
 }
 - (id)initWithSettings:(LETableViewCellSettings *) settings {
     self.leSelectionDelegate=settings.leSelectionDelegate;
@@ -33,20 +54,20 @@
             [self.leTapEffect setBackgroundImage:[LEColorMask2 leImageStrechedFromSizeOne] forState:UIControlStateHighlighted];
             [self.leTapEffect addTarget:self action:@selector(onButtonTaped) forControlEvents:UIControlEventTouchUpInside];
         } 
-        [self leExtraInits];
+        [self leAdditionalInits];
         [self initCellStyle];
         if(self.leTapEffect){
             [self addSubview:self.leTapEffect];
         }
-        [self leExtraInitsForTopViews];
+        [self leAdditionalInitsForTopViews];
     }
     return self;
 }
 
--(void) leExtraInits{
+-(void) leAdditionalInits{
     self.leTitle=[LEUIFramework leGetLabelWithSettings:[[LEAutoLayoutSettings alloc] initWithSuperView:self Anchor:LEAnchorInsideLeftCenter Offset:CGPointMake(LELayoutSideSpace, 0) CGSize:CGSizeZero] LabelSettings:[[LEAutoLayoutLabelSettings alloc] initWithText:@"" FontSize:LENavigationBarFontSize Font:nil Width:LESCREEN_WIDTH-LELayoutSideSpace*2 Height:self.bounds.size.height Color:LEColorBlack Line:0 Alignment:NSTextAlignmentLeft]];
 }
--(void) leExtraInitsForTopViews{}
+-(void) leAdditionalInitsForTopViews{}
 -(void) setHasBottomSplit:(BOOL)leHasBottomSplit{
     _leHasBottomSplit=leHasBottomSplit;
     if(leHasBottomSplit){
@@ -111,13 +132,13 @@
         [self.leSelectionDelegate leOnTableViewCellSelectedWithInfo:@{LEKeyOfIndexPath:self.leIndexPath,LEKeyOfClickStatus:info}];
     }
 }
--(void) leOnCellSelectedWithIndex:(int) index{
+-(void) leOnCellSelectedWithIndex:(NSInteger) index{
     if(self.leSelectionDelegate){
         if(!self.leIndexPath){
             LELogObject(@"点击事件无效。继承LEBaseTableViewCell后，重写SetData方法中需要设置indexPath：self.leIndexPath=path;")
             return;
         }
-        [self.leSelectionDelegate leOnTableViewCellSelectedWithInfo:@{LEKeyOfIndexPath:self.leIndexPath,LEKeyOfClickStatus:[NSNumber numberWithInt:index]}];
+        [self.leSelectionDelegate leOnTableViewCellSelectedWithInfo:@{LEKeyOfIndexPath:self.leIndexPath,LEKeyOfClickStatus:[NSNumber numberWithInteger:index]}];
     }
 }
 -(void) leSetData:(id) data IndexPath:(NSIndexPath *) path{

@@ -62,12 +62,12 @@
     self=[super initWithFrame:frame];
     if(self){
         [self setUserInteractionEnabled:YES];
-        [self leExtraInits];
+        [self leAdditionalInits];
     }
     return self;
 }
 
--(void) leExtraInits{
+-(void) leAdditionalInits{
     [self leAddTopSplitWithColor:LEColorSplit Offset:CGPointZero Width:LESCREEN_WIDTH];
     [self setBackgroundColor:LEColorWhite];
     int buttonWidth=(int)LESCREEN_WIDTH/arrayNormalIcons.count;
@@ -110,9 +110,12 @@
         }
         id obj=[arrayPages objectAtIndex:i];
         if([obj isKindOfClass:[LETabbarRelatedPageView class]]){
-            LESuppressPerformSelectorLeakWarning(
-                                                 [obj performSelector:NSSelectorFromString(i==index?@"leEaseInView":@"leEaseOutView")];
-                                                 );
+            LETabbarRelatedPageView *view=(LETabbarRelatedPageView *) obj;
+            if(i==index){
+                [view leEaseInView];
+            }else{
+                [view leEaseOutView];
+            }
         }
     }
     if(self.leDelegate&&[self.leDelegate respondsToSelector:@selector(leTabbarDidTappedWith:)]){

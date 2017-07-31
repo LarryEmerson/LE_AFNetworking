@@ -35,7 +35,7 @@
 -(NSString *) leStringValue{
     return [NSString stringWithFormat:@"%@",self];
 }
--(void) leExtraInits{}
+-(void) leAdditionalInits{}
 -(void) leRelease{}
 @end
 
@@ -67,19 +67,19 @@
     [self addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:target action:sel]];
 }
 -(UIImageView *) leAddTopSplitWithColor:(UIColor *) color Offset:(CGPoint) offset Width:(int) width{
-    UIImageView *img=[LEUIFramework leGetImageViewWithSettings:[[LEAutoLayoutSettings alloc] initWithSuperView:self Anchor:LEAnchorInsideTopCenter Offset:offset CGSize:CGSizeMake(width, 0.5)] Image:[color leImageStrechedFromSizeOne]];
+    UIImageView *img=[LEUIFramework leGetImageViewWithSettings:[[LEAutoLayoutSettings alloc] initWithSuperView:self Anchor:LEAnchorInsideTopCenter Offset:offset CGSize:CGSizeMake(width, 1.0/LESCREEN_SCALE)] Image:[color leImageStrechedFromSizeOne]];
     return img;
 }
 -(UIImageView *) leAddBottomSplitWithColor:(UIColor *) color Offset:(CGPoint) offset Width:(int) width{
-    UIImageView *img= [LEUIFramework leGetImageViewWithSettings:[[LEAutoLayoutSettings alloc] initWithSuperView:self Anchor:LEAnchorInsideBottomCenter Offset:offset CGSize:CGSizeMake(width, 0.5)] Image:[color leImageStrechedFromSizeOne]];
+    UIImageView *img= [LEUIFramework leGetImageViewWithSettings:[[LEAutoLayoutSettings alloc] initWithSuperView:self Anchor:LEAnchorInsideBottomCenter Offset:offset CGSize:CGSizeMake(width, 1.0/LESCREEN_SCALE)] Image:[color leImageStrechedFromSizeOne]];
     return img;
 }
 -(UIImageView *) leAddLeftSplitWithColor:(UIColor *) color Offset:(CGPoint) offset Height:(int) height{
-    UIImageView *img=[LEUIFramework leGetImageViewWithSettings:[[LEAutoLayoutSettings alloc] initWithSuperView:self Anchor:LEAnchorInsideLeftCenter Offset:offset CGSize:CGSizeMake(0.5, height)] Image:[color leImageStrechedFromSizeOne]];
+    UIImageView *img=[LEUIFramework leGetImageViewWithSettings:[[LEAutoLayoutSettings alloc] initWithSuperView:self Anchor:LEAnchorInsideLeftCenter Offset:offset CGSize:CGSizeMake(1.0/LESCREEN_SCALE, height)] Image:[color leImageStrechedFromSizeOne]];
     return img;
 }
 -(UIImageView *) leAddRightSplitWithColor:(UIColor *) color Offset:(CGPoint) offset Height:(int) height{
-    UIImageView *img= [LEUIFramework leGetImageViewWithSettings:[[LEAutoLayoutSettings alloc] initWithSuperView:self Anchor:LEAnchorInsideRightCenter Offset:offset CGSize:CGSizeMake(0.5, height)] Image:[color leImageStrechedFromSizeOne]];
+    UIImageView *img= [LEUIFramework leGetImageViewWithSettings:[[LEAutoLayoutSettings alloc] initWithSuperView:self Anchor:LEAnchorInsideRightCenter Offset:offset CGSize:CGSizeMake(1.0/LESCREEN_SCALE, height)] Image:[color leImageStrechedFromSizeOne]];
     return img;
 }
 -(void) leReleaseView{}
@@ -595,7 +595,7 @@ static void * LEAutoResizeObserversKey = (void *) @"LEAutoResizeObservers";
             [settings.leRelativeChangeView.leAutoResizeObservers addObject:self];
         }
     }
-    [self leExtraInits];
+    [self leAdditionalInits];
     return self;
 }
 -(void) leAddAutoResizeRelativeView:(UIView *) changeView EdgeInsects:(UIEdgeInsets) edge{
@@ -790,7 +790,8 @@ LESingleton_implementation(LEUIFramework)
 -(void) leTapVariableLogic{
     canItBeTappedVariable=NO;
 }
--(void) leExtraInits{
+-(void) leAdditionalInits{
+//-(void) leAdditionalInits{
     self.leNavigationButtonFontsize=LELayoutFontSize16;
     self.leImageNavigationBar=[LEColorClear leImageStrechedFromSizeOne];
     self.leColorNavigationBar=LEColorWhite;
@@ -1032,16 +1033,13 @@ void ProviderReleaseData (void *info, const void *data, size_t size){
     int pixelNum = imageWidth * imageHeight;
     uint32_t* pCurPtr = rgbImageBuf;
     for (int i = 0; i < pixelNum; i++, pCurPtr++){
-        if ((*pCurPtr & 0xFFFFFF00) < 0x99999900)    // 将白色变成透明
-        {
+        if ((*pCurPtr & 0xFFFFFF00) < 0x99999900){    // 将白色变成透
             // 改成下面的代码，会将图片转成想要的颜色
             uint8_t* ptr = (uint8_t*)pCurPtr;
             ptr[3] = red; //0~255
             ptr[2] = green;
             ptr[1] = blue;
-        }
-        else
-        {
+        }else {
             uint8_t* ptr = (uint8_t*)pCurPtr;
             ptr[0] = 0;
         }

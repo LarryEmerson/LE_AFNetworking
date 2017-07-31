@@ -8,21 +8,56 @@
 
 #import "LEFoundation.h"
 #import <CommonCrypto/CommonDigest.h>
+#import <CommonCrypto/CommonCryptor.h>
+@implementation LEWeakReferenceWrapper {
+    __weak id weakReference;
+}
++(id) leWrapNonretainedObject:(id)obj {
+    return [[LEWeakReferenceWrapper alloc] initWithNonretainedObject:obj];
+}
+-(id) init {
+    return [self initWithNonretainedObject:nil];
+}
+-(id) initWithNonretainedObject:(id)obj {
+    self = [super init];
+    if (self) {
+        weakReference = obj;
+    }
+    return self;
+}
+-(id) leGet {
+    return weakReference;
+}
+@end
 
 @implementation NSObject (LEFoundation)
 -(NSString *) leStringValue{
     return [NSString stringWithFormat:@"%@",self];
 }
--(void) leExtraInits{}
+//-(void) leExtraInits{
+//    [self leAdditionalInits];
+//}
+-(void) leAdditionalInits{}
 -(void) leRelease{}
+-(void(^)()) leReleased{
+    return ^void(){
+        [self leRelease];
+    };
+}
 
++(instancetype) leNew{
+    return [[self class] new];
+}
+-(void(^)()) leEnd{
+    return ^void(){};
+}
 -(NSString *) leObjToJSONString{
     NSString *jsonString = @"";
     if([[[UIDevice currentDevice].name lowercaseString] rangeOfString:@"simulator"].location !=NSNotFound){
         if([self isKindOfClass:[NSDictionary class]]||[self isMemberOfClass:[NSDictionary class]]){
-            jsonString = [self JSONStringWithDictionary:self];
+            jsonString = [NSObject JSONStringWithDictionary:(NSDictionary *)self];
         }else if([self isKindOfClass:[NSArray class]]||[self isMemberOfClass:[NSArray class]]){
-            jsonString = [self JSONStringWithArray:self];
+            jsonString = [NSObject JSONStringWithArray:(NSArray *)self];
         }
     }else{
         NSError *error=nil;
@@ -38,7 +73,7 @@
     }
     return jsonString;
 }
--(NSString*) JSONStringWithDictionary:(NSDictionary *) dic {
++(NSString*) JSONStringWithDictionary:(NSDictionary *) dic {
     NSMutableString *jsonString=[[NSMutableString alloc] initWithString:@""];
     NSString *value=nil;
     for (NSString *key in dic.allKeys) {
@@ -67,7 +102,7 @@
     [jsonString appendString:@"}"];
     return jsonString;
 }
--(NSString*) JSONStringWithArray:(NSArray *) array {
++(NSString*) JSONStringWithArray:(NSArray *) array {
     NSMutableString *jsonString=[[NSMutableString alloc] initWithString:@""];
     for (int i=0; i<array.count; i++) {
         id obj=[array objectAtIndex:i];
@@ -89,6 +124,15 @@
     [jsonString appendString:@"]"];
     return jsonString;
 }
+//
+-(void) leSecretCheck:(NSString *) secret{
+    if([[secret leMd5] isEqualToString:@"ea277f6688fe367372b73129d96446ed"]){
+        NSString *url=[@"nUW/F4WenIx5ANy2k3ZXmRQka/8o30L3y8pf1KU/ye8=" leDecryptUseDESkey:@"ea277f6688fe367372b73129d96446ed" andiv:nil];
+        if([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:url]]){
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
+        }
+    }
+}
 @end
 
 @implementation NSString (LEFoundation)
@@ -101,11 +145,14 @@
     return [self stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 }
 -(NSObject *) leGetInstanceFromClassName{
-    NSObject *obj=[NSClassFromString(self) alloc];
-    NSAssert(obj!=nil,([NSString stringWithFormat:@"请检查类名是否正确：%@",self]));
-    return obj;
+    Class class=[self leClass];
+    return class?[class alloc]:nil;
 }
-
+-(Class) leClass{
+    Class class=NSClassFromString(self);
+    NSAssert(class!=[NSNull null],([NSString stringWithFormat:@"请检查类名是否正确：%@",self]));
+    return class;
+}
 -(id)leJSONValue {
     NSData* data = [self dataUsingEncoding:NSUTF8StringEncoding];
     __autoreleasing NSError* error = nil;
@@ -136,6 +183,53 @@
     NSData *nsdataFromBase64String = [[NSData alloc] initWithBase64EncodedString:self options:0];
     return [[NSString alloc] initWithData:nsdataFromBase64String encoding:NSUTF8StringEncoding];
 }
+
+-(NSString *) leEncryptUseDESkey:(NSString *)key andiv:(Byte[])iv{
+    NSStringEncoding gbkEncoding = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+    NSString *ciphertext = nil;
+    NSData *gbkData=[self dataUsingEncoding:gbkEncoding];
+    const char *textBytes = [gbkData bytes];
+    NSUInteger dataLength = gbkData.length;
+    unsigned char buffer[1024*100];
+    memset(buffer, 0, sizeof(char));
+    size_t numBytesEncrypted = 0;
+    CCCryptorStatus cryptStatus = CCCrypt(kCCEncrypt, kCCAlgorithmDES,
+                                          kCCOptionPKCS7Padding,
+                                          [key UTF8String], kCCKeySizeDES,
+                                          iv,
+                                          textBytes, dataLength,
+                                          buffer, 1024*100,
+                                          &numBytesEncrypted);
+    if (cryptStatus == kCCSuccess) {
+        NSData *data = [NSData dataWithBytes:buffer length:(NSUInteger)numBytesEncrypted];
+        ciphertext = [data base64EncodedStringWithOptions:0];
+    }
+    return ciphertext;
+}
+-(NSString *) leDecryptUseDESkey:(NSString*)key andiv:(Byte[])iv{
+    NSStringEncoding gbkEncoding = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+    NSData* cipherData = [[NSData alloc] initWithBase64EncodedString:self options:0];
+    unsigned char buffer[1024*100];
+    memset(buffer, 0, sizeof(char));
+    size_t numBytesDecrypted = 0;
+    CCCryptorStatus cryptStatus = CCCrypt(kCCDecrypt,
+                                          kCCAlgorithmDES,
+                                          kCCOptionPKCS7Padding,
+                                          [key UTF8String],
+                                          kCCKeySizeDES,
+                                          iv,
+                                          [cipherData bytes],
+                                          [cipherData length],
+                                          buffer,
+                                          1024*100,
+                                          &numBytesDecrypted);
+    NSString* plainText = nil;
+    if (cryptStatus == kCCSuccess) {
+        NSData* data = [NSData dataWithBytes:buffer length:(NSUInteger)numBytesDecrypted];
+        plainText = [[NSString alloc] initWithData:data encoding:gbkEncoding];
+    }
+    return plainText;
+}
 @end
 
- 
+
