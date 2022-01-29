@@ -180,7 +180,7 @@
             break;
         case 1://Post
         {
-            [manager POST:settings.leGetURL parameters:settings.leParameter headers:settings.leHttpHead  progress:^(NSProgress * _Nonnull downloadProgress){
+            [manager POST:settings.leGetURL parameters:settings.leParameter headers:settings.leHttpHead progress:^(NSProgress * _Nonnull downloadProgress){
                 
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 [weakSelf onRespondedWithRequest:task responseObject:responseObject];
@@ -191,7 +191,7 @@
             break;
         case 2://Head
         {
-            [manager HEAD:settings.leGetURL parameters:settings.leParameter  headers:settings.leHttpHead  success:^(NSURLSessionDataTask * _Nonnull task) {
+            [manager HEAD:settings.leGetURL parameters:settings.leParameter headers:settings.leHttpHead success:^(NSURLSessionDataTask * _Nonnull task) {
                 [weakSelf onRespondedWithRequest:task responseObject:task];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 [weakSelf onRespondedWithRequest:task responseObject:nil error:error];
@@ -200,7 +200,7 @@
             break;
         case 3://Put
         {
-            [manager PUT:settings.leGetURL parameters:settings.leParameter  headers:settings.leHttpHead success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            [manager PUT:settings.leGetURL parameters:settings.leParameter headers:settings.leHttpHead success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 [weakSelf onRespondedWithRequest:task responseObject:responseObject];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 [weakSelf onRespondedWithRequest:task responseObject:nil error:error];
@@ -209,7 +209,7 @@
             break;
         case 4://Patch
         {
-            [manager PATCH:settings.leGetURL parameters:settings.leParameter headers:settings.leHttpHead  success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            [manager PATCH:settings.leGetURL parameters:settings.leParameter headers:settings.leHttpHead success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 [weakSelf onRespondedWithRequest:task responseObject:responseObject];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 [weakSelf onRespondedWithRequest:task responseObject:nil error:error];
@@ -219,7 +219,7 @@
             break;
         case 5://Delete
         {
-            [manager DELETE:settings.leGetURL parameters:settings.leParameter headers:settings.leHttpHead  success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject){
+            [manager DELETE:settings.leGetURL parameters:settings.leParameter headers:settings.leHttpHead success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject){
                 [weakSelf onRespondedWithRequest:task responseObject:responseObject];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error)  {
                 [weakSelf onRespondedWithRequest:task responseObject:nil error:error];
